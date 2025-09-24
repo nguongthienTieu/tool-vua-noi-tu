@@ -1,82 +1,57 @@
-# Word Chain Helper / Trợ giúp Từ Ghép Tiếng Việt
+# Trợ giúp Từ Ghép Tiếng Việt
 
-A Node.js utility to help with word chain games where:
-- **English**: The last letter of one word must match the first letter of the next word
-- **Vietnamese**: The last syllable of one compound word (từ ghép) must match the first syllable of the next compound word
+Công cụ Node.js hỗ trợ trò chơi từ ghép tiếng Việt với quy luật: **Âm tiết cuối của từ ghép này phải trùng với âm tiết đầu của từ ghép tiếp theo**.
 
-**Tiện ích Node.js giúp chơi game nối từ với quy luật:**
-- **Tiếng Anh**: Chữ cái cuối của từ này phải trùng với chữ cái đầu của từ tiếp theo  
-- **Tiếng Việt**: Âm tiết cuối của từ ghép này phải trùng với âm tiết đầu của từ ghép tiếp theo
+Sử dụng nguồn từ điển từ **@undertheseanlp/dictionary** với hơn 25,000 từ ghép tiếng Việt.
 
-## Features / Tính năng
+## Tính năng
 
-- Add and manage word databases / Thêm và quản lý cơ sở dữ liệu từ
-- Check if two words can be chained together / Kiểm tra hai từ có nối được không
-- Find possible next/previous words in a chain / Tìm từ có thể đến trước/sau trong chuỗi  
-- Validate entire word chains / Kiểm tra tính hợp lệ của chuỗi từ
-- Get statistics about your word database / Lấy thống kê về cơ sở dữ liệu từ
-- Interactive CLI interface with Vietnamese and English support / Giao diện CLI tương tác hỗ trợ tiếng Việt và tiếng Anh
-- **NEW**: Vietnamese compound word (từ ghép 2 tiếng) support / **MỚI**: Hỗ trợ từ ghép 2 tiếng tiếng Việt
-- **NEW**: Dead word detection (words that cannot continue) / **MỚI**: Phát hiện từ "chết" (từ không thể tiếp tục)
-- **NEW**: User word management (add, remove, update) / **MỚI**: Quản lý từ người dùng (thêm, xóa, cập nhật)
-- **NEW**: Word usage history tracking / **MỚI**: Theo dõi lịch sử sử dụng từ
+- ✅ **Từ điển lớn**: Hơn 25,000 từ ghép tiếng Việt từ @undertheseanlp/dictionary
+- ✅ **Kiểm tra nối từ**: Xác định hai từ ghép có thể nối với nhau không
+- ✅ **Tìm từ tiếp theo/trước**: Tìm tất cả từ có thể đến trước/sau trong chuỗi
+- ✅ **Xác thực chuỗi từ**: Kiểm tra tính hợp lệ của toàn bộ chuỗi từ ghép  
+- ✅ **Thống kê từ điển**: Phân tích phân bố âm tiết, từ "chết", v.v.
+- ✅ **Giao diện CLI**: Tương tác qua dòng lệnh với các lệnh tiếng Việt
+- ✅ **Quản lý từ**: Thêm, xóa, cập nhật từ ghép của người dùng
+- ✅ **Lịch sử sử dụng**: Theo dõi tần suất sử dụng các từ
+- ✅ **Tối ưu hóa**: Hiệu suất cao với từ điển lớn
 
-## Installation / Cài đặt
-
-Clone the repository and navigate to the project directory:
+## Cài đặt
 
 ```bash
 git clone https://github.com/nguongthienTieu/word-chain-helper.git
 cd word-chain-helper
 ```
 
-## Usage / Cách sử dụng
+## Cách sử dụng
 
-### Programmatic Usage / Sử dụng trong Code
+### Sử dụng trong Code
 
-#### English Example / Ví dụ tiếng Anh
 ```javascript
 const WordChainHelper = require('./index.js');
 
-const helper = new WordChainHelper('english');
+const helper = new WordChainHelper();
 
-// Add words to the database
-helper.addWords(['apple', 'elephant', 'tiger', 'rabbit']);
-
-// Check if two words can be chained
-console.log(helper.canChain('apple', 'elephant')); // true
-console.log(helper.canChain('apple', 'tiger')); // false
-
-// Find possible next words
-console.log(helper.findNextWords('apple')); // ['elephant']
-
-// Validate a chain
-console.log(helper.validateChain(['apple', 'elephant', 'tiger'])); // true
-```
-
-#### Vietnamese Example / Ví dụ tiếng Việt
-```javascript
-const WordChainHelper = require('./index.js');
-
-const helper = new WordChainHelper('vietnamese');
-
-// Thêm từ vào cơ sở dữ liệu
-helper.addWords(['bánh mì', 'mì quảng', 'con voi', 'voi con'], true);
-
-// Kiểm tra nối từ
+// Kiểm tra khả năng nối từ
 console.log(helper.canChain('bánh mì', 'mì quảng')); // true
-console.log(helper.canChain('con voi', 'voi con')); // true
+console.log(helper.canChain('con voi', 'voi biển')); // true
 
-// Tìm từ tiếp theo
-console.log(helper.findNextWords('bánh mì')); // ['mì quảng']
+// Tìm từ có thể theo sau
+console.log(helper.findNextWords('bánh mì')); 
+// → ['mì chính', 'mì thánh', 'mì ăn liền']
 
-// Kiểm tra chuỗi từ
-console.log(helper.validateChain(['bánh mì', 'mì quảng'])); // true
+// Thêm từ của người dùng
+helper.addWords(['hạnh phúc', 'phúc lợi', 'lợi ích'], true);
+
+// Thống kê từ điển
+const stats = helper.getStats();
+console.log(`Tổng số từ: ${stats.totalWords}`);
+console.log(`Từ do người dùng thêm: ${stats.userAddedWords}`);
 ```
 
-### CLI Usage / Sử dụng CLI
+### Sử dụng CLI
 
-Start the interactive CLI:
+Khởi động giao diện dòng lệnh tương tác:
 
 ```bash
 npm start
@@ -86,41 +61,25 @@ node cli.js
 word-chain-helper
 ```
 
-#### Vietnamese Commands / Lệnh tiếng Việt:
+### Lệnh CLI
+
 - `them <từ1> <từ2> ...` - Thêm từ vào cơ sở dữ liệu
 - `noi <từ1> <từ2>` - Kiểm tra hai từ có nối được không
 - `tieptheo <từ>` - Tìm từ có thể theo sau
-- `truoc <từ>` - Tìm từ có thể đứng trước
+- `truoc <từ>` - Tìm từ có thể đứng trước  
 - `kiemtra <từ1> <từ2> ...` - Kiểm tra chuỗi từ
 - `thongke` - Hiển thị thống kê
-- `tatca` - Hiển thị tất cả từ
-- `tuchet` - Hiển thị từ "chết"
+- `tatca` - Hiển thị tất cả từ (chỉ 20 từ đầu do quá nhiều từ)
+- `tuchết` - Hiển thị từ "chết"
 - `xoatu <từ>` - Xóa từ
-- `capnhat <từ_cũ> <từ_mới>` - Cập nhật từ
-- `ngonngu <vietnamese/english>` - Thay đổi ngôn ngữ
+- `capnhat <từ_cũ> <từ_mới>` - Cập nhật từ  
 - `lichsu` - Xem lịch sử sử dụng từ
 - `trogiup` - Hiển thị trợ giúp
 - `thoat` - Thoát
 
-#### English Commands / Lệnh tiếng Anh:
-- `add <word1> <word2> ...` - Add words to database
-- `chain <word1> <word2>` - Check if two words can be chained
-- `next <word>` - Find next possible words
-- `prev <word>` - Find previous possible words  
-- `validate <word1> <word2> ...` - Validate word chain
-- `stats` - Show statistics
-- `words` - Show all words
-- `dead` - Show dead words
-- `remove <word>` - Remove words
-- `update <old_word> <new_word>` - Update word
-- `language <vietnamese/english>` - Change language
-- `history` - Show usage history
-- `help` - Show help
-- `quit` - Exit
+### Kiểm tra nhanh
 
-### Quick Test / Kiểm tra nhanh
-
-Run the example with Vietnamese compound words:
+Chạy ví dụ với từ ghép tiếng Việt:
 
 ```bash
 npm test
@@ -128,72 +87,90 @@ npm test
 node index.js
 ```
 
-Run Vietnamese-specific examples:
+Chạy các ví dụ cụ thể tiếng Việt:
+
+```bash
+node examples.js
+```
+
+Chạy ví dụ tiếng Việt từ file cũ:
 
 ```bash
 node vietnamese-examples.js
 ```
 
-## API Reference / Tài liệu API
+## Tài liệu API
 
 ### WordChainHelper Class
 
-#### Constructor / Khởi tạo
-- `new WordChainHelper(language)` - Create new instance with language ('english' or 'vietnamese')
+#### Constructor
+- `new WordChainHelper()` - Tạo instance mới (chỉ hỗ trợ tiếng Việt)
 
-#### Core Methods / Phương thức cơ bản
-- `addWords(wordList, isUserAdded)` - Add an array of words to the database
-- `canChain(word1, word2)` - Check if two words can be chained
-- `findNextWords(word)` - Find all words that can follow the given word
-- `findPreviousWords(word)` - Find all words that can come before the given word
-- `validateChain(chain)` - Validate if an entire chain of words is valid
-- `getStats()` - Get statistics about the word database
-- `clear()` - Clear all words from the database
-- `getAllWords()` - Get all words in the database
+#### Phương thức cơ bản
+- `addWords(wordList, isUserAdded)` - Thêm mảng từ vào cơ sở dữ liệu
+- `canChain(word1, word2)` - Kiểm tra hai từ có nối được không
+- `findNextWords(word)` - Tìm tất cả từ có thể theo sau từ đã cho
+- `findPreviousWords(word)` - Tìm tất cả từ có thể đứng trước từ đã cho
+- `validateChain(chain)` - Xác thực chuỗi từ ghép có hợp lệ không
+- `getStats()` - Lấy thống kê về cơ sở dữ liệu từ
+- `clear()` - Xóa tất cả từ khỏi cơ sở dữ liệu
+- `getAllWords()` - Lấy tất cả từ trong cơ sở dữ liệu
 
-#### Word Management / Quản lý từ
-- `removeWords(wordList)` - Remove words from the database
-- `updateWord(oldWord, newWord)` - Replace a word with a new word
-- `getUserWords()` - Get all user-added words
+#### Quản lý từ
+- `removeWords(wordList)` - Xóa từ khỏi cơ sở dữ liệu
+- `updateWord(oldWord, newWord)` - Thay thế từ cũ bằng từ mới  
+- `getUserWords()` - Lấy tất cả từ do người dùng thêm
 
-#### Dead Words / Từ "chết"
-- `updateDeadWords()` - Update the list of dead words
-- `getDeadWords()` - Get all dead words (words that cannot continue a chain)
-- `isDeadWord(word)` - Check if a word is a dead word
+#### Từ "chết"
+- `updateDeadWords()` - Cập nhật danh sách từ "chết"
+- `getDeadWords()` - Lấy tất cả từ "chết" (từ không thể tiếp tục chuỗi)
+- `isDeadWord(word)` - Kiểm tra từ có phải từ "chết" không
 
-#### Language Support / Hỗ trợ ngôn ngữ
-- `getLanguage()` - Get current language
-- `setLanguage(language)` - Set language ('english' or 'vietnamese')
-- `extractSyllables(word)` - Extract syllables from Vietnamese compound word
-- `getConnectingElement(word, isLast)` - Get connecting element (letter/syllable)
-- `isValidCompoundWord(word)` - Validate Vietnamese compound word format
+#### Hỗ trợ tiếng Việt
+- `getLanguage()` - Lấy ngôn ngữ hiện tại (luôn là 'vietnamese')
+- `extractSyllables(word)` - Tách âm tiết từ từ ghép tiếng Việt
+- `getConnectingElement(word, isLast)` - Lấy âm tiết kết nối (đầu/cuối)
+- `isValidCompoundWord(word)` - Xác thực định dạng từ ghép tiếng Việt
 
-#### History / Lịch sử
-- `getWordHistory()` - Get word usage history
+#### Lịch sử
+- `getWordHistory()` - Lấy lịch sử sử dụng từ
 
-## Examples
+## Ví dụ
 
-### Example 1: Basic Word Chaining
+### Ví dụ 1: Nối từ cơ bản
 ```javascript
 const helper = new WordChainHelper();
-helper.addWords(['cat', 'tiger', 'rabbit', 'tree']);
 
-console.log(helper.canChain('cat', 'tiger')); // true (cat -> tiger)
-console.log(helper.canChain('tiger', 'rabbit')); // false (tiger -> rabbit)
+console.log(helper.canChain('bánh mì', 'mì quảng')); // true
+console.log(helper.canChain('con voi', 'voi biển')); // true
+console.log(helper.canChain('hoa đào', 'tạo nên')); // false
 ```
 
-### Example 2: Finding Chains
+### Ví dụ 2: Tìm chuỗi từ
 ```javascript
 const helper = new WordChainHelper();
-helper.addWords(['apple', 'elephant', 'tiger', 'rabbit', 'tree', 'eagle']);
 
-const nextWords = helper.findNextWords('tiger');
-console.log(nextWords); // ['rabbit', 'tree']
+const nextWords = helper.findNextWords('bánh mì');
+console.log(nextWords); // ['mì chính', 'mì thánh', 'mì ăn liền']
 
-const chain = ['apple', 'elephant', 'tiger', 'rabbit'];
+const chain = ['bánh mì', 'mì quảng', 'quảng nam'];
 console.log(helper.validateChain(chain)); // true
 ```
 
-## License
+### Ví dụ 3: Thống kê từ điển
+```javascript
+const helper = new WordChainHelper();
+const stats = helper.getStats();
+
+console.log(`Tổng số từ: ${stats.totalWords}`); // 25410
+console.log(`Từ ghép: ${stats.compoundWords}`);
+console.log(`Âm tiết phổ biến:`, Object.keys(stats.syllableStats).slice(0, 5));
+```
+
+## Nguồn từ điển
+
+Công cụ sử dụng từ điển từ **@undertheseanlp/dictionary** - một dự án mã nguồn mở cung cấp từ điển tiếng Việt chất lượng cao với hơn 25,000 từ ghép.
+
+## Giấy phép
 
 ISC
