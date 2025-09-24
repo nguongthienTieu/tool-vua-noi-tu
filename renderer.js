@@ -335,43 +335,42 @@ class WordChainApp {
         if (!chainsWordInput || !maxChainsInput || !maxLengthInput || !chainsResult) return;
         
         const word = chainsWordInput.value.trim();
-        const maxChains = parseInt(maxChainsInput.value) || 4;
+        const maxChains = parseInt(maxChainsInput.value) || 5;
         const maxLength = parseInt(maxLengthInput.value) || 10;
 
         if (!word) {
-            this.showResult(chainsResult, 'Vui lòng nhập từ để tạo chuỗi', 'error');
+            this.showResult(chainsResult, 'Vui lòng nhập từ để tìm chuỗi', 'error');
             return;
         }
 
-        if (maxChains < 1 || maxChains > 10) {
-            this.showResult(chainsResult, 'Số chuỗi phải từ 1 đến 10', 'error');
+        if (maxChains < 3 || maxChains > 5) {
+            this.showResult(chainsResult, 'Số chuỗi phải từ 3 đến 5', 'error');
             return;
         }
 
-        if (maxLength < 2 || maxLength > 15) {
-            this.showResult(chainsResult, 'Độ dài chuỗi phải từ 2 đến 15', 'error');
+        if (maxLength < 2 || maxLength > 10) {
+            this.showResult(chainsResult, 'Độ dài chuỗi phải từ 2 đến 10', 'error');
             return;
         }
 
-        this.showResult(chainsResult, '⏳ Đang tạo chuỗi từ...', 'info');
+        this.showResult(chainsResult, '⏳ Đang tìm chuỗi từ dẫn đến từ chết...', 'info');
 
         try {
-            const chains = await window.electronAPI.generateWordChains(word, maxChains, maxLength);
+            const chains = await window.electronAPI.findChainsToDeadWords(word, maxChains, maxLength);
 
             if (chains.length > 0) {
                 const chainsHtml = this.createChainsDisplay(chains);
                 const gameEndingCount = chains.filter(chain => chain.isGameEnding).length;
-                const continueCount = chains.length - gameEndingCount;
                 
-                const summary = `<p style="margin-bottom: 15px;">✅ Tạo được ${chains.length} chuỗi từ "${word}":<br>` +
-                              `🎯 ${continueCount} chuỗi có thể tiếp tục | 💀 ${gameEndingCount} chuỗi kết thúc game</p>`;
+                const summary = `<p style="margin-bottom: 15px;">✅ Tìm được ${chains.length} chuỗi từ "${word}" dẫn đến từ chết:<br>` +
+                              `💀 ${gameEndingCount} chuỗi kết thúc game (tất cả chuỗi đều dẫn đến từ chết)</p>`;
                 
                 this.showResult(chainsResult, summary + chainsHtml, 'success');
             } else {
-                this.showResult(chainsResult, `❌ Không thể tạo chuỗi từ "${word}" (có thể là từ "chết")`, 'info');
+                this.showResult(chainsResult, `❌ Không tìm thấy chuỗi từ "${word}" dẫn đến từ chết (có thể từ này đã là từ chết hoặc không có đường đi)`, 'info');
             }
         } catch (error) {
-            this.showResult(chainsResult, 'Lỗi khi tạo chuỗi từ', 'error');
+            this.showResult(chainsResult, 'Lỗi khi tìm chuỗi từ', 'error');
         }
     }
 

@@ -15,8 +15,9 @@ Sử dụng nguồn từ điển từ **@undertheseanlp/dictionary** với hơn 
 - ✅ **Luôn ở trên**: Có thể ghim cửa sổ để luôn hiển thị trên cùng
 - ✅ **Tìm từ tiếp theo/trước**: Tìm tất cả từ có thể đến trước/sau trong chuỗi
 - ✅ **Phát hiện từ "chết"**: 💀 Đánh dấu từ không thể tiếp tục (kết thúc trò chơi)
-- ✅ **Tạo chuỗi từ**: Tự động tạo ra 4 chuỗi từ có thể từ một từ bất kỳ
+- ✅ **Tìm chuỗi từ chết**: 🎯 Tự động tìm 3-5 chuỗi từ dẫn đến từ "chết" (kết thúc game)
 - ✅ **Xếp hạng chuỗi**: Ưu tiên hiển thị theo độ dài (ngắn đến dài)
+- ✅ **Từ 2 âm tiết**: 📝 Chỉ hỗ trợ từ ghép tiếng Việt có đúng 2 âm tiết
 - ✅ **Thống kê từ điển**: Phân tích phân bố âm tiết, từ "chết", v.v.
 - ✅ **Quản lý từ nâng cao**: Thêm, xóa từ với lưu trữ bền vững
 - ✅ **Lưu trữ bền vững**: Từ do người dùng thêm được lưu và khôi phục khi khởi động lại
@@ -117,7 +118,8 @@ node vietnamese-examples.js
 - `canChain(word1, word2)` - Kiểm tra hai từ có nối được không
 - `findNextWords(word, prioritizeDeadWords, returnSimpleArray)` - Tìm từ có thể theo sau với hỗ trợ từ "chết"
 - `findPreviousWords(word)` - Tìm tất cả từ có thể đứng trước từ đã cho
-- `generateWordChains(startWord, maxChains, maxLength)` - **MỚI**: Tạo chuỗi từ tự động
+- `generateWordChains(startWord, maxChains, maxLength)` - Tạo chuỗi từ tự động (legacy)
+- `findChainsToDeadWords(startWord, maxChains, maxLength)` - **MỚI**: Tìm 3-5 chuỗi dẫn đến từ "chết"
 - `validateChain(chain)` - Xác thực chuỗi từ ghép có hợp lệ không
 - `hasNextWords(word)` - **MỚI**: Kiểm tra từ có thể tiếp tục không
 - `getStats()` - Lấy thống kê về cơ sở dữ liệu từ
@@ -172,29 +174,30 @@ const simpleWords = helper.findNextWords('bánh mì', true, true);
 console.log(simpleWords); // → ['mì chính', 'mì thánh', 'mì ăn liền']
 ```
 
-### Ví dụ 3: Tạo chuỗi từ tự động (MỚI)
+### Ví dụ 3: Tìm chuỗi từ dẫn đến từ chết (MỚI)
 ```javascript
 const helper = new WordChainHelper();
 
-// Tạo 4 chuỗi từ "bánh mì", mỗi chuỗi tối đa 10 từ
-const chains = helper.generateWordChains('bánh mì', 4, 10);
+// Tìm 3-5 chuỗi từ "bánh mì" dẫn đến từ "chết" (kết thúc game)
+const chains = helper.findChainsToDeadWords('bánh mì', 5, 10);
 console.log(chains);
 // → [
 //     {
-//       chain: ['bánh mì', 'mì chính'],
-//       length: 2,
-//       canContinue: true,
-//       isGameEnding: false,
-//       lastWord: 'mì chính'
-//     },
-//     {
-//       chain: ['bánh mì', 'mì thánh', 'thánh ca'],
+//       chain: ['bánh mì', 'mì dẹt', 'dẹt đét'],
 //       length: 3,
 //       canContinue: false,
-//       isGameEnding: true, // Chuỗi này kết thúc game
-//       lastWord: 'thánh ca'
+//       isGameEnding: true, // Tất cả chuỗi đều kết thúc game
+//       lastWord: 'dẹt đét'
+//     },
+//     {
+//       chain: ['bánh mì', 'mì hột', 'hột cườm', 'cườm cườm'],
+//       length: 4,
+//       canContinue: false,
+//       isGameEnding: true,
+//       lastWord: 'cườm cườm'
 //     }
 //   ]
+```
 
 // Hiển thị chuỗi
 chains.forEach((chainInfo, index) => {
