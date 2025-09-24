@@ -10,7 +10,7 @@
     "start": "node index.js",
     "validate": "node index.js validate",
     "find": "node index.js find",
-    "test": "node -e \"const WCH = require('./index.js'); const helper = new WCH(); console.log('Testing...'); console.log('Chain validation:', helper.validateChain(['apple', 'elephant', 'tiger'])); console.log('Find next words:', helper.findNextWords('apple')); console.log('✅ Basic tests passed');\""
+    "test": "node test.js"
   },
   "keywords": ["word-chain", "word-game", "vietnamese", "helper", "cli"],
   "author": "nguongthienTieu",
