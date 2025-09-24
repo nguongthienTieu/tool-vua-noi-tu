@@ -1,12 +1,18 @@
 {
   "name": "word-chain-helper",
   "version": "1.0.0",
-  "description": "",
+  "description": "A helper tool for word chain games where each word must start with the last letter of the previous word. Supports Vietnamese and English.",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "bin": {
+    "word-chain": "./index.js"
   },
-  "keywords": [],
-  "author": "",
+  "scripts": {
+    "start": "node index.js",
+    "validate": "node index.js validate",
+    "find": "node index.js find",
+    "test": "node -e \"const WCH = require('./index.js'); const helper = new WCH(); console.log('Testing...'); console.log('Chain validation:', helper.validateChain(['apple', 'elephant', 'tiger'])); console.log('Find next words:', helper.findNextWords('apple')); console.log('✅ Basic tests passed');\""
+  },
+  "keywords": ["word-chain", "word-game", "vietnamese", "helper", "cli"],
+  "author": "nguongthienTieu",
   "license": "ISC"
 }
