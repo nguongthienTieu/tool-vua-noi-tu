@@ -382,68 +382,61 @@ class WordChainHelper {
 
     /**
      * Helper method for finding chains to dead words iteratively
-     * Optimized to find shortest chains first and improve performance
+     * Balanced optimization for performance and chain finding capability
      * @private
      */
     _findChainsToDeadWordsIterative(startWord, chains, chainStrings, maxChains, maxLength) {
-        // Use separate queues for each chain length to process shortest chains first
-        const queues = new Array(maxLength + 1).fill(null).map(() => []);
-        queues[1].push([startWord]); // Start with length 1
-        
+        const queue = [[startWord]]; // Simple FIFO queue for BFS
         let processedCount = 0;
-        const maxProcessed = 3000; // Increased limit for better chain finding
+        const maxProcessed = 1000; // Balanced limit for good performance and results
         const visitedWords = new Set(); // Cache to avoid re-processing same words
         const deadWordCache = new Map(); // Cache dead word status
-        let currentLength = 1;
         
-        // Process chains by length, shortest first
-        while (currentLength <= maxLength && chains.length < maxChains && processedCount < maxProcessed) {
-            const currentQueue = queues[currentLength];
+        while (queue.length > 0 && chains.length < maxChains && processedCount < maxProcessed) {
+            const currentChain = queue.shift();
+            processedCount++;
             
-            if (currentQueue.length === 0) {
-                currentLength++;
+            // Skip if chain is too long
+            if (currentChain.length > maxLength) {
                 continue;
             }
             
-            const currentChain = currentQueue.shift();
-            processedCount++;
-            
             const currentWord = currentChain[currentChain.length - 1];
+            const currentDepth = currentChain.length;
             
-            // Check if we've already processed this word at this depth
-            const cacheKey = `${currentWord}_${currentChain.length}`;
+            // Avoid revisiting same word at same depth
+            const cacheKey = `${currentWord}_${currentDepth}`;
             if (visitedWords.has(cacheKey)) {
                 continue;
             }
             visitedWords.add(cacheKey);
             
-            // Use cached dead word status if available
+            // Check if current word is dead (cached lookup)
             let isDeadWord = false;
             if (deadWordCache.has(currentWord)) {
                 isDeadWord = deadWordCache.get(currentWord);
             } else {
-                const nextWordsData = this.findNextWords(currentWord, false, true); // Get simple array
+                const nextWordsData = this.findNextWords(currentWord, false, true);
                 isDeadWord = nextWordsData.length === 0;
                 deadWordCache.set(currentWord, isDeadWord);
             }
             
-            if (isDeadWord) {
-                // This is a dead word - save the chain if it's meaningful
-                if (currentChain.length >= 2) {
-                    const chainKey = currentChain.join('|');
-                    if (!chainStrings.has(chainKey)) {
-                        chains.push([...currentChain]);
-                        chainStrings.add(chainKey);
-                    }
+            if (isDeadWord && currentChain.length >= 2) {
+                // Found a dead word chain
+                const chainKey = currentChain.join('|');
+                if (!chainStrings.has(chainKey)) {
+                    chains.push([...currentChain]);
+                    chainStrings.add(chainKey);
                 }
-            } else if (currentChain.length < maxLength) {
-                // Continue building chains - only explore if we haven't reached max length
+            } else if (!isDeadWord && currentChain.length < maxLength) {
+                // Continue building chain
                 const nextWordsData = this.findNextWords(currentWord, false, true);
-                // Prioritize words that lead to dead ends, limit exploration for better performance
-                const wordsToTry = nextWordsData.slice(0, Math.min(5, nextWordsData.length));
+                
+                // Moderate pruning: take first 2 words to balance performance and results
+                const wordsToTry = nextWordsData.slice(0, 2);
                 
                 for (const nextWord of wordsToTry) {
-                    // Avoid cycles by checking if word is already in current chain
+                    // Avoid cycles
                     if (currentChain.includes(nextWord)) {
                         continue;
                     }
@@ -451,12 +444,8 @@ class WordChainHelper {
                     const newChain = [...currentChain, nextWord];
                     const newChainKey = newChain.join('|');
                     
-                    if (!chainStrings.has(newChainKey) && newChain.length <= maxLength) {
-                        // Add to appropriate queue by length
-                        const newLength = newChain.length;
-                        if (newLength <= maxLength) {
-                            queues[newLength].push(newChain);
-                        }
+                    if (!chainStrings.has(newChainKey)) {
+                        queue.push(newChain);
                     }
                 }
             }
