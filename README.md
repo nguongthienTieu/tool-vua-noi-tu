@@ -1,4 +1,4 @@
-# Goat Tiếng Việt Beng
+# Goat nối từ Beng
 
 Ứng dụng desktop Node.js/Electron hỗ trợ trò chơi từ ghép tiếng Việt với quy luật: **Âm tiết cuối của từ ghép này phải trùng với âm tiết đầu của từ ghép tiếp theo**.
 
