@@ -53,25 +53,9 @@
             <!-- Find chains tab -->
             <div id="chains-tab" class="tab-panel">
                 <div class="input-group">
-                    <label for="chainsWord">Nhập từ để tìm chuỗi:</label>
+                    <label for="chainsWord">Nhập từ để tìm chuỗi dẫn đến kết thúc:</label>
                     <input type="text" id="chainsWord" placeholder="VD: bánh mì">
                 </div>
-                
-                <!-- Algorithm Selection -->
-                <div class="algorithm-group">
-                    <label class="algorithm-label">Chọn thuật toán:</label>
-                    <div class="algorithm-options">
-                        <label class="radio-option">
-                            <input type="radio" name="algorithm" value="bfs" checked>
-                            <span class="radio-text">🚀 BFS - Tìm chuỗi ngắn nhất</span>
-                        </label>
-                        <label class="radio-option">
-                            <input type="radio" name="algorithm" value="dfs">
-                            <span class="radio-text">🌍 DFS - Tìm tất cả đường dẫn</span>
-                        </label>
-                    </div>
-                </div>
-                
                 <div class="settings-group">
                     <div class="setting-item">
                         <label for="maxChains">Số chuỗi tối đa (3-5):</label>
@@ -82,7 +66,7 @@
                         <input type="number" id="maxLength" value="10" min="2" max="10">
                     </div>
                 </div>
-                <button id="generateChainsBtn" class="action-btn">🔍 Tìm chuỗi kết thúc</button>
+                <button id="generateChainsBtn" class="action-btn">Tìm chuỗi kết thúc</button>
                 <div id="chainsResult" class="result-area"></div>
             </div>
 
