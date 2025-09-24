@@ -1,13 +1,11 @@
 {
   "name": "word-chain-helper",
   "version": "2.0.0",
-  "description": "Trợ giúp từ ghép tiếng Việt - Công cụ hỗ trợ trò chơi từ ghép tiếng Việt sử dụng nguồn từ điển từ @undertheseanlp/dictionary với 25,000+ từ ghép tiếng Việt.",
-  "main": "index.js",
-  "bin": {
-    "word-chain-helper": "./cli.js"
-  },
+  "description": "Trợ giúp từ ghép tiếng Việt - Ứng dụng desktop hỗ trợ trò chơi từ ghép tiếng Việt sử dụng nguồn từ điển từ @undertheseanlp/dictionary với 25,000+ từ ghép tiếng Việt.",
+  "main": "main.js",
   "scripts": {
-    "start": "node cli.js",
+    "start": "electron .",
+    "dev": "NODE_ENV=development electron .",
     "example": "node index.js",
     "examples": "node examples.js",
     "vietnamese": "node vietnamese-examples.js",
@@ -19,12 +17,17 @@
     "tu-ghep",
     "word-chain",
     "word-game",
-    "cli",
+    "desktop",
+    "electron",
+    "app",
     "helper",
     "utility",
     "undertheseanlp",
     "nlp"
   ],
   "author": "nguongthienTieu",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^38.1.2"
+  }
 }

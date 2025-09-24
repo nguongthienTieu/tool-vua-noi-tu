@@ -1,17 +1,19 @@
 # Trợ giúp Từ Ghép Tiếng Việt
 
-Công cụ Node.js hỗ trợ trò chơi từ ghép tiếng Việt với quy luật: **Âm tiết cuối của từ ghép này phải trùng với âm tiết đầu của từ ghép tiếp theo**.
+Ứng dụng desktop Node.js/Electron hỗ trợ trò chơi từ ghép tiếng Việt với quy luật: **Âm tiết cuối của từ ghép này phải trùng với âm tiết đầu của từ ghép tiếp theo**.
 
 Sử dụng nguồn từ điển từ **@undertheseanlp/dictionary** với hơn 25,000 từ ghép tiếng Việt.
 
 ## Tính năng
 
 - ✅ **Từ điển lớn**: Hơn 25,000 từ ghép tiếng Việt từ @undertheseanlp/dictionary
+- ✅ **Giao diện desktop**: Ứng dụng Electron với cửa sổ nhỏ có thể đè lên các ứng dụng khác
+- ✅ **Luôn ở trên**: Có thể ghim cửa sổ để luôn hiển thị trên cùng
 - ✅ **Kiểm tra nối từ**: Xác định hai từ ghép có thể nối với nhau không
 - ✅ **Tìm từ tiếp theo/trước**: Tìm tất cả từ có thể đến trước/sau trong chuỗi
 - ✅ **Xác thực chuỗi từ**: Kiểm tra tính hợp lệ của toàn bộ chuỗi từ ghép  
 - ✅ **Thống kê từ điển**: Phân tích phân bố âm tiết, từ "chết", v.v.
-- ✅ **Giao diện CLI**: Tương tác qua dòng lệnh với các lệnh tiếng Việt
+- ✅ **Thêm từ tùy chỉnh**: Cho phép người dùng thêm từ mới vào cơ sở dữ liệu
 - ✅ **Quản lý từ**: Thêm, xóa, cập nhật từ ghép của người dùng
 - ✅ **Lịch sử sử dụng**: Theo dõi tần suất sử dụng các từ
 - ✅ **Tối ưu hóa**: Hiệu suất cao với từ điển lớn
@@ -21,9 +23,34 @@ Sử dụng nguồn từ điển từ **@undertheseanlp/dictionary** với hơn 
 ```bash
 git clone https://github.com/nguongthienTieu/word-chain-helper.git
 cd word-chain-helper
+npm install
 ```
 
 ## Cách sử dụng
+
+### Chạy ứng dụng Desktop
+
+Khởi động ứng dụng desktop Electron:
+
+```bash
+npm start
+```
+
+Ứng dụng sẽ mở một cửa sổ nhỏ với giao diện thân thiện, cho phép:
+
+- **Kiểm tra nối từ**: Nhập hai từ để kiểm tra khả năng nối
+- **Tìm từ**: Tìm các từ có thể theo sau hoặc đứng trước một từ
+- **Kiểm tra chuỗi**: Xác thực tính hợp lệ của chuỗi từ ghép
+- **Thêm từ mới**: Bổ sung từ vào cơ sở dữ liệu
+- **Ghim cửa sổ**: Giữ ứng dụng luôn hiển thị trên cùng để tiện sử dụng cùng các ứng dụng khác
+
+### Phát triển
+
+Chạy ở chế độ phát triển với DevTools:
+
+```bash
+npm run dev
+```
 
 ### Sử dụng trong Code
 
@@ -48,34 +75,6 @@ const stats = helper.getStats();
 console.log(`Tổng số từ: ${stats.totalWords}`);
 console.log(`Từ do người dùng thêm: ${stats.userAddedWords}`);
 ```
-
-### Sử dụng CLI
-
-Khởi động giao diện dòng lệnh tương tác:
-
-```bash
-npm start
-# or
-node cli.js
-# or if installed globally
-word-chain-helper
-```
-
-### Lệnh CLI
-
-- `them <từ1> <từ2> ...` - Thêm từ vào cơ sở dữ liệu
-- `noi <từ1> <từ2>` - Kiểm tra hai từ có nối được không
-- `tieptheo <từ>` - Tìm từ có thể theo sau
-- `truoc <từ>` - Tìm từ có thể đứng trước  
-- `kiemtra <từ1> <từ2> ...` - Kiểm tra chuỗi từ
-- `thongke` - Hiển thị thống kê
-- `tatca` - Hiển thị tất cả từ (chỉ 20 từ đầu do quá nhiều từ)
-- `tuchết` - Hiển thị từ "chết"
-- `xoatu <từ>` - Xóa từ
-- `capnhat <từ_cũ> <từ_mới>` - Cập nhật từ  
-- `lichsu` - Xem lịch sử sử dụng từ
-- `trogiup` - Hiển thị trợ giúp
-- `thoat` - Thoát
 
 ### Kiểm tra nhanh
 
