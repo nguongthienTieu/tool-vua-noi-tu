@@ -338,6 +338,10 @@ class WordChainApp {
         const maxChains = parseInt(maxChainsInput.value) || 5;
         const maxLength = parseInt(maxLengthInput.value) || 10;
 
+        // Get selected algorithm
+        const algorithmRadio = document.querySelector('input[name="algorithm"]:checked');
+        const algorithm = algorithmRadio ? algorithmRadio.value : 'bfs';
+
         if (!word) {
             this.showResult(chainsResult, 'Vui lòng nhập từ để tìm chuỗi', 'error');
             return;
@@ -353,16 +357,25 @@ class WordChainApp {
             return;
         }
 
-        this.showResult(chainsResult, '⏳ Đang tìm chuỗi từ dẫn đến kết thúc...', 'info');
+        const algorithmName = algorithm === 'bfs' ? 'BFS (chuỗi ngắn nhất)' : 'DFS (tất cả đường dẫn)';
+        this.showResult(chainsResult, `⏳ Đang tìm chuỗi bằng thuật toán ${algorithmName}...`, 'info');
 
         try {
-            const chains = await window.electronAPI.findChainsToDeadWords(word, maxChains, maxLength);
+            let chains;
+            if (algorithm === 'bfs') {
+                chains = await window.electronAPI.findShortestChainsBFS(word, maxChains, maxLength);
+            } else {
+                chains = await window.electronAPI.findAllChainsToEndDFS(word, maxChains, maxLength);
+            }
 
             if (chains.length > 0) {
-                const chainsHtml = this.createChainsDisplay(chains);
+                const chainsHtml = this.createChainsDisplay(chains, algorithm);
                 const gameEndingCount = chains.filter(chain => chain.isGameEnding).length;
                 
-                const summary = `<p style="margin-bottom: 15px;">✅ Tìm được ${chains.length} chuỗi từ "${word}" dẫn đến kết thúc:<br>` +
+                const algorithmEmoji = algorithm === 'bfs' ? '🚀' : '🌍';
+                const algorithmText = algorithm === 'bfs' ? 'BFS - Ngắn nhất' : 'DFS - Tất cả đường';
+                
+                const summary = `<p style="margin-bottom: 15px;">${algorithmEmoji} Thuật toán ${algorithmText}: Tìm được ${chains.length} chuỗi từ "${word}" dẫn đến kết thúc:<br>` +
                               `💀 ${gameEndingCount} chuỗi kết thúc game (tất cả chuỗi đều dẫn đến kết thúc)</p>`;
                 
                 this.showResult(chainsResult, summary + chainsHtml, 'success');
@@ -382,15 +395,18 @@ class WordChainApp {
         }).join('')}</div>`;
     }
 
-    createChainsDisplay(chains) {
+    createChainsDisplay(chains, algorithm = 'bfs') {
+        const algorithmBadge = algorithm === 'bfs' ? '🚀 BFS' : '🌍 DFS';
+        
         return chains.map((chainInfo, index) => {
             const statusClass = chainInfo.isGameEnding ? 'game-ending' : 'can-continue';
             const statusText = chainInfo.isGameEnding ? 'Kết thúc game' : 'Có thể tiếp tục';
+            const algorithmInfo = chainInfo.algorithm ? ` [${chainInfo.algorithm}]` : '';
             
             return `
                 <div class="chain-result-item">
                     <div class="chain-header">
-                        <span class="chain-info">Chuỗi ${index + 1} (${chainInfo.length} từ)</span>
+                        <span class="chain-info">Chuỗi ${index + 1} (${chainInfo.length} từ) ${algorithmBadge}${algorithmInfo}</span>
                         <span class="chain-status ${statusClass}">${statusText}</span>
                     </div>
                     <div class="chain-words">${chainInfo.chain.join(' → ')}</div>

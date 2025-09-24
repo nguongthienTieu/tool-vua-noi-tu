@@ -81,6 +81,15 @@ class ElectronWordChainApp {
             return this.wordChainHelper.findChainsToDeadWords(word, maxChains, maxLength);
         });
 
+        // New optimized algorithms
+        ipcMain.handle('find-shortest-chains-bfs', async (event, word, maxChains, maxLength) => {
+            return this.wordChainHelper.findShortestChainsBFS(word, maxChains, maxLength);
+        });
+
+        ipcMain.handle('find-all-chains-to-end-dfs', async (event, word, maxChains, maxLength) => {
+            return this.wordChainHelper.findAllChainsToEndDFS(word, maxChains, maxLength);
+        });
+
         ipcMain.handle('get-stats', async (event) => {
             return this.wordChainHelper.getStats();
         });
