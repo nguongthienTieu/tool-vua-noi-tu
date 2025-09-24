@@ -11,10 +11,12 @@ Sử dụng nguồn từ điển từ **@undertheseanlp/dictionary** với hơn 
 - ✅ **Luôn ở trên**: Có thể ghim cửa sổ để luôn hiển thị trên cùng
 - ✅ **Kiểm tra nối từ**: Xác định hai từ ghép có thể nối với nhau không
 - ✅ **Tìm từ tiếp theo/trước**: Tìm tất cả từ có thể đến trước/sau trong chuỗi
+- ✅ **Phát hiện từ "chết"**: 💀 Đánh dấu từ không thể tiếp tục (kết thúc trò chơi)
+- ✅ **Tạo chuỗi từ**: Tự động tạo ra 4 chuỗi từ có thể từ một từ bất kỳ
+- ✅ **Xếp hạng chuỗi**: Ưu tiên hiển thị theo độ dài (ngắn đến dài)
 - ✅ **Xác thực chuỗi từ**: Kiểm tra tính hợp lệ của toàn bộ chuỗi từ ghép  
 - ✅ **Thống kê từ điển**: Phân tích phân bố âm tiết, từ "chết", v.v.
-- ✅ **Thêm từ tùy chỉnh**: Cho phép người dùng thêm từ mới vào cơ sở dữ liệu
-- ✅ **Quản lý từ**: Thêm, xóa, cập nhật từ ghép của người dùng
+- ✅ **Quản lý từ nâng cao**: Thêm, xóa từ với cập nhật từ "chết" tự động
 - ✅ **Lịch sử sử dụng**: Theo dõi tần suất sử dụng các từ
 - ✅ **Tối ưu hóa**: Hiệu suất cao với từ điển lớn
 
@@ -108,9 +110,11 @@ node vietnamese-examples.js
 #### Phương thức cơ bản
 - `addWords(wordList, isUserAdded)` - Thêm mảng từ vào cơ sở dữ liệu
 - `canChain(word1, word2)` - Kiểm tra hai từ có nối được không
-- `findNextWords(word)` - Tìm tất cả từ có thể theo sau từ đã cho
+- `findNextWords(word, prioritizeDeadWords, returnSimpleArray)` - Tìm từ có thể theo sau với hỗ trợ từ "chết"
 - `findPreviousWords(word)` - Tìm tất cả từ có thể đứng trước từ đã cho
+- `generateWordChains(startWord, maxChains, maxLength)` - **MỚI**: Tạo chuỗi từ tự động
 - `validateChain(chain)` - Xác thực chuỗi từ ghép có hợp lệ không
+- `hasNextWords(word)` - **MỚI**: Kiểm tra từ có thể tiếp tục không
 - `getStats()` - Lấy thống kê về cơ sở dữ liệu từ
 - `clear()` - Xóa tất cả từ khỏi cơ sở dữ liệu
 - `getAllWords()` - Lấy tất cả từ trong cơ sở dữ liệu
@@ -143,6 +147,73 @@ const helper = new WordChainHelper();
 console.log(helper.canChain('bánh mì', 'mì quảng')); // true
 console.log(helper.canChain('con voi', 'voi biển')); // true
 console.log(helper.canChain('hoa đào', 'tạo nên')); // false
+```
+
+### Ví dụ 2: Tìm từ với phát hiện từ "chết" (MỚI)
+```javascript
+const helper = new WordChainHelper();
+
+// Format nâng cao với thông tin từ "chết"
+const nextWords = helper.findNextWords('bánh mì', true, false);
+console.log(nextWords);
+// → [
+//     { word: 'mì chính', isDead: false },
+//     { word: 'mì thánh', isDead: true }, // Từ "chết" - có thể kết thúc game
+//     { word: 'mì ăn liền', isDead: false }
+//   ]
+
+// Format đơn giản để tương thích ngược
+const simpleWords = helper.findNextWords('bánh mì', true, true);
+console.log(simpleWords); // → ['mì chính', 'mì thánh', 'mì ăn liền']
+```
+
+### Ví dụ 3: Tạo chuỗi từ tự động (MỚI)
+```javascript
+const helper = new WordChainHelper();
+
+// Tạo 4 chuỗi từ "bánh mì", mỗi chuỗi tối đa 10 từ
+const chains = helper.generateWordChains('bánh mì', 4, 10);
+console.log(chains);
+// → [
+//     {
+//       chain: ['bánh mì', 'mì chính'],
+//       length: 2,
+//       canContinue: true,
+//       isGameEnding: false,
+//       lastWord: 'mì chính'
+//     },
+//     {
+//       chain: ['bánh mì', 'mì thánh', 'thánh ca'],
+//       length: 3,
+//       canContinue: false,
+//       isGameEnding: true, // Chuỗi này kết thúc game
+//       lastWord: 'thánh ca'
+//     }
+//   ]
+
+// Hiển thị chuỗi
+chains.forEach((chainInfo, index) => {
+    const status = chainInfo.isGameEnding ? '💀 GAME ENDING' : '🎯 CAN CONTINUE';
+    console.log(`${index + 1}. ${chainInfo.chain.join(' → ')} ${status}`);
+});
+```
+
+### Ví dụ 4: Quản lý từ nâng cao
+```javascript
+const helper = new WordChainHelper();
+
+// Thêm từ mới
+helper.addWords(['học sinh', 'sinh viên', 'viên chức'], true);
+
+// Lấy từ do người dùng thêm
+const userWords = helper.getUserWords();
+console.log('Từ người dùng:', userWords);
+
+// Xóa từ
+helper.removeWords(['từ cũ']);
+
+// Kiểm tra từ có thể tiếp tục không
+console.log('Có thể tiếp tục:', helper.hasNextWords('bánh mì')); // true
 ```
 
 ### Ví dụ 2: Tìm chuỗi từ

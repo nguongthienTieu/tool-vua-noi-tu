@@ -6,10 +6,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
     // Word chain operations
     canChain: (word1, word2) => ipcRenderer.invoke('can-chain', word1, word2),
     findNextWords: (word) => ipcRenderer.invoke('find-next-words', word),
+    findNextWordsEnhanced: (word) => ipcRenderer.invoke('find-next-words-enhanced', word),
     findPreviousWords: (word) => ipcRenderer.invoke('find-previous-words', word),
     validateChain: (chain) => ipcRenderer.invoke('validate-chain', chain),
+    generateWordChains: (word, maxChains, maxLength) => ipcRenderer.invoke('generate-word-chains', word, maxChains, maxLength),
     getStats: () => ipcRenderer.invoke('get-stats'),
     addWords: (words) => ipcRenderer.invoke('add-words', words),
+    removeWords: (words) => ipcRenderer.invoke('remove-words', words),
+    getUserWords: () => ipcRenderer.invoke('get-user-words'),
     getRandomWords: (count) => ipcRenderer.invoke('get-random-words', count),
     
     // Window controls

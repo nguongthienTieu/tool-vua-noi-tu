@@ -26,10 +26,19 @@ const chainInput = document.getElementById('chainInput');
 const validateChainBtn = document.getElementById('validateChainBtn');
 const chainResult = document.getElementById('chainResult');
 
-// Add words tab elements
+// Chains generation tab elements
+const chainsWordInput = document.getElementById('chainsWord');
+const maxChainsInput = document.getElementById('maxChains');
+const maxLengthInput = document.getElementById('maxLength');
+const generateChainsBtn = document.getElementById('generateChainsBtn');
+const chainsResult = document.getElementById('chainsResult');
+
+// Manage words tab elements
 const newWordsInput = document.getElementById('newWords');
 const addWordsBtn = document.getElementById('addWordsBtn');
+const removeWordsBtn = document.getElementById('removeWordsBtn');
 const addResult = document.getElementById('addResult');
+const userWordsList = document.getElementById('userWordsList');
 
 class WordChainApp {
     constructor() {
@@ -40,6 +49,7 @@ class WordChainApp {
     async init() {
         this.setupEventListeners();
         await this.loadStats();
+        await this.loadUserWords();
     }
 
     setupEventListeners() {
@@ -76,14 +86,21 @@ class WordChainApp {
             if (e.key === 'Enter' && e.ctrlKey) this.validateChain();
         });
 
-        // Add words
+        // Generate chains
+        generateChainsBtn.addEventListener('click', () => this.generateChains());
+        chainsWordInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') this.generateChains();
+        });
+
+        // Manage words
         addWordsBtn.addEventListener('click', () => this.addWords());
+        removeWordsBtn.addEventListener('click', () => this.removeWords());
         newWordsInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter' && e.ctrlKey) this.addWords();
         });
     }
 
-    switchTab(tabName) {
+    async switchTab(tabName) {
         // Update button states
         tabButtons.forEach(btn => {
             btn.classList.toggle('active', btn.dataset.tab === tabName);
@@ -93,6 +110,11 @@ class WordChainApp {
         tabPanels.forEach(panel => {
             panel.classList.toggle('active', panel.id === `${tabName}-tab`);
         });
+
+        // Load data specific to certain tabs
+        if (tabName === 'manage') {
+            await this.loadUserWords();
+        }
     }
 
     async togglePin() {
@@ -161,19 +183,29 @@ class WordChainApp {
         }
 
         try {
-            const words = direction === 'next' 
-                ? await window.electronAPI.findNextWords(word)
-                : await window.electronAPI.findPreviousWords(word);
+            let words;
+            if (direction === 'next') {
+                // Get enhanced format for next words with dead word detection
+                words = await window.electronAPI.findNextWordsEnhanced(word);
+            } else {
+                // Previous words still use simple format
+                words = await window.electronAPI.findPreviousWords(word);
+                words = words.map(word => ({ word, isDead: false })); // Convert to enhanced format
+            }
 
             if (words.length > 0) {
                 const title = direction === 'next' 
                     ? `Các từ có thể theo sau "${word}":` 
                     : `Các từ có thể đứng trước "${word}":`;
                 
-                const wordList = this.createWordList(words.slice(0, 15)); // Limit to 15 words
+                const wordList = this.createEnhancedWordList(words.slice(0, 15)); // Limit to 15 words
                 const moreText = words.length > 15 ? `<p style="margin-top: 8px; font-size: 10px; color: #666;">và ${words.length - 15} từ khác...</p>` : '';
                 
-                this.showResult(findResult, `<p style="margin-bottom: 8px;">${title}</p>${wordList}${moreText}`, 'success');
+                // Show dead words count if any
+                const deadCount = words.filter(item => item.isDead).length;
+                const deadInfo = deadCount > 0 ? `<p style="margin: 4px 0; font-size: 11px; color: #856404;">💀 ${deadCount} từ "chết" (có thể kết thúc trò chơi)</p>` : '';
+                
+                this.showResult(findResult, `<p style="margin-bottom: 8px;">${title}</p>${deadInfo}${wordList}${moreText}`, 'success');
             } else {
                 const message = direction === 'next' 
                     ? `Không tìm thấy từ nào có thể theo sau "${word}"`
@@ -242,6 +274,7 @@ class WordChainApp {
         try {
             await window.electronAPI.addWords(words);
             await this.loadStats(); // Refresh stats
+            await this.loadUserWords(); // Refresh user words list
             
             const wordList = this.createWordList(words);
             this.showResult(addResult, `<p style="margin-bottom: 8px;">✅ Đã thêm ${words.length} từ:</p>${wordList}`, 'success');
@@ -249,6 +282,118 @@ class WordChainApp {
             newWordsInput.value = '';
         } catch (error) {
             this.showResult(addResult, 'Lỗi khi thêm từ', 'error');
+        }
+    }
+
+    async removeWords() {
+        const wordsText = newWordsInput.value.trim();
+
+        if (!wordsText) {
+            this.showResult(addResult, 'Vui lòng nhập từ cần xóa', 'error');
+            return;
+        }
+
+        const words = wordsText.split(',').map(word => word.trim()).filter(word => word);
+
+        if (words.length === 0) {
+            this.showResult(addResult, 'Không có từ hợp lệ để xóa', 'error');
+            return;
+        }
+
+        try {
+            await window.electronAPI.removeWords(words);
+            await this.loadStats(); // Refresh stats
+            await this.loadUserWords(); // Refresh user words list
+            
+            const wordList = this.createWordList(words);
+            this.showResult(addResult, `<p style="margin-bottom: 8px;">✅ Đã xóa ${words.length} từ:</p>${wordList}`, 'success');
+            
+            newWordsInput.value = '';
+        } catch (error) {
+            this.showResult(addResult, 'Lỗi khi xóa từ', 'error');
+        }
+    }
+
+    async generateChains() {
+        const word = chainsWordInput.value.trim();
+        const maxChains = parseInt(maxChainsInput.value) || 4;
+        const maxLength = parseInt(maxLengthInput.value) || 10;
+
+        if (!word) {
+            this.showResult(chainsResult, 'Vui lòng nhập từ để tạo chuỗi', 'error');
+            return;
+        }
+
+        if (maxChains < 1 || maxChains > 10) {
+            this.showResult(chainsResult, 'Số chuỗi phải từ 1 đến 10', 'error');
+            return;
+        }
+
+        if (maxLength < 2 || maxLength > 15) {
+            this.showResult(chainsResult, 'Độ dài chuỗi phải từ 2 đến 15', 'error');
+            return;
+        }
+
+        this.showResult(chainsResult, '⏳ Đang tạo chuỗi từ...', 'info');
+
+        try {
+            const chains = await window.electronAPI.generateWordChains(word, maxChains, maxLength);
+
+            if (chains.length > 0) {
+                const chainsHtml = this.createChainsDisplay(chains);
+                const gameEndingCount = chains.filter(chain => chain.isGameEnding).length;
+                const continueCount = chains.length - gameEndingCount;
+                
+                const summary = `<p style="margin-bottom: 15px;">✅ Tạo được ${chains.length} chuỗi từ "${word}":<br>` +
+                              `🎯 ${continueCount} chuỗi có thể tiếp tục | 💀 ${gameEndingCount} chuỗi kết thúc game</p>`;
+                
+                this.showResult(chainsResult, summary + chainsHtml, 'success');
+            } else {
+                this.showResult(chainsResult, `❌ Không thể tạo chuỗi từ "${word}" (có thể là từ "chết")`, 'info');
+            }
+        } catch (error) {
+            this.showResult(chainsResult, 'Lỗi khi tạo chuỗi từ', 'error');
+        }
+    }
+
+    createEnhancedWordList(wordsData) {
+        return `<div class="word-list">${wordsData.map(item => {
+            const wordClass = item.isDead ? 'word-item dead-word' : 'word-item live-word';
+            const title = item.isDead ? 'Từ "chết" - có thể kết thúc trò chơi. Nhấp để sao chép.' : 'Từ "sống" - có thể tiếp tục. Nhấp để sao chép.';
+            return `<span class="${wordClass}" title="${title}">${item.word}</span>`;
+        }).join('')}</div>`;
+    }
+
+    createChainsDisplay(chains) {
+        return chains.map((chainInfo, index) => {
+            const statusClass = chainInfo.isGameEnding ? 'game-ending' : 'can-continue';
+            const statusText = chainInfo.isGameEnding ? 'Kết thúc game' : 'Có thể tiếp tục';
+            
+            return `
+                <div class="chain-result-item">
+                    <div class="chain-header">
+                        <span class="chain-info">Chuỗi ${index + 1} (${chainInfo.length} từ)</span>
+                        <span class="chain-status ${statusClass}">${statusText}</span>
+                    </div>
+                    <div class="chain-words">${chainInfo.chain.join(' → ')}</div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    async loadUserWords() {
+        try {
+            const userWords = await window.electronAPI.getUserWords();
+            if (userWordsList) {
+                if (userWords.length > 0) {
+                    const wordList = this.createWordList(userWords);
+                    userWordsList.innerHTML = wordList;
+                } else {
+                    userWordsList.innerHTML = '<p style="color: #666; font-size: 11px; margin: 0;">Chưa có từ nào được thêm bởi người dùng.</p>';
+                }
+            }
+        } catch (error) {
+            console.error('Lỗi khi tải từ người dùng:', error);
         }
     }
 
