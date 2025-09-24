@@ -31,7 +31,7 @@ class ElectronWordChainApp {
                 preload: path.join(__dirname, 'preload.js')
             },
             icon: path.join(__dirname, 'assets', 'icon.png'), // optional icon
-            title: 'Goat Tiếng Việt Beng'
+            title: 'Goat nối từ Beng'
         });
 
         // Load the HTML file

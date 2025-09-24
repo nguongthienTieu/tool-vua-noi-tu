@@ -1,33 +1,33 @@
-// DOM elements
-const tabButtons = document.querySelectorAll('.tab-btn');
-const tabPanels = document.querySelectorAll('.tab-panel');
-const togglePinBtn = document.getElementById('togglePinBtn');
-const showExamplesBtn = document.getElementById('showExamplesBtn');
-const examplesArea = document.getElementById('examplesArea');
+// DOM elements - wrapped in functions to ensure DOM is ready
+const getTabButtons = () => document.querySelectorAll('.tab-btn');
+const getTabPanels = () => document.querySelectorAll('.tab-panel');
+const getTogglePinBtn = () => document.getElementById('togglePinBtn');
+const getShowExamplesBtn = () => document.getElementById('showExamplesBtn');
+const getExamplesArea = () => document.getElementById('examplesArea');
 
 // Stats elements
-const totalWordsEl = document.getElementById('totalWords');
-const userWordsEl = document.getElementById('userWords');
+const getTotalWordsEl = () => document.getElementById('totalWords');
+const getUserWordsEl = () => document.getElementById('userWords');
 
 // Find tab elements
-const findWordInput = document.getElementById('findWord');
-const findNextBtn = document.getElementById('findNextBtn');
-const findPrevBtn = document.getElementById('findPrevBtn');
-const findResult = document.getElementById('findResult');
+const getFindWordInput = () => document.getElementById('findWord');
+const getFindNextBtn = () => document.getElementById('findNextBtn');
+const getFindPrevBtn = () => document.getElementById('findPrevBtn');
+const getFindResult = () => document.getElementById('findResult');
 
 // Chains generation tab elements
-const chainsWordInput = document.getElementById('chainsWord');
-const maxChainsInput = document.getElementById('maxChains');
-const maxLengthInput = document.getElementById('maxLength');
-const generateChainsBtn = document.getElementById('generateChainsBtn');
-const chainsResult = document.getElementById('chainsResult');
+const getChainsWordInput = () => document.getElementById('chainsWord');
+const getMaxChainsInput = () => document.getElementById('maxChains');
+const getMaxLengthInput = () => document.getElementById('maxLength');
+const getGenerateChainsBtn = () => document.getElementById('generateChainsBtn');
+const getChainsResult = () => document.getElementById('chainsResult');
 
 // Manage words tab elements
-const newWordsInput = document.getElementById('newWords');
-const addWordsBtn = document.getElementById('addWordsBtn');
-const removeWordsBtn = document.getElementById('removeWordsBtn');
-const addResult = document.getElementById('addResult');
-const userWordsList = document.getElementById('userWordsList');
+const getNewWordsInput = () => document.getElementById('newWords');
+const getAddWordsBtn = () => document.getElementById('addWordsBtn');
+const getRemoveWordsBtn = () => document.getElementById('removeWordsBtn');
+const getAddResult = () => document.getElementById('addResult');
+const getUserWordsList = () => document.getElementById('userWordsList');
 
 class WordChainApp {
     constructor() {
@@ -43,45 +43,78 @@ class WordChainApp {
 
     setupEventListeners() {
         // Tab switching
-        tabButtons.forEach(btn => {
+        getTabButtons().forEach(btn => {
             btn.addEventListener('click', () => this.switchTab(btn.dataset.tab));
         });
 
         // Window controls
-        togglePinBtn.addEventListener('click', () => this.togglePin());
+        const togglePinBtn = getTogglePinBtn();
+        if (togglePinBtn) {
+            togglePinBtn.addEventListener('click', () => this.togglePin());
+        }
         
         // Examples toggle
-        showExamplesBtn.addEventListener('click', () => this.toggleExamples());
+        const showExamplesBtn = getShowExamplesBtn();
+        if (showExamplesBtn) {
+            showExamplesBtn.addEventListener('click', () => this.toggleExamples());
+        }
 
         // Find functionality
-        findNextBtn.addEventListener('click', () => this.findWords('next'));
-        findPrevBtn.addEventListener('click', () => this.findWords('prev'));
-        findWordInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') this.findWords('next');
-        });
+        const findNextBtn = getFindNextBtn();
+        const findPrevBtn = getFindPrevBtn();
+        const findWordInput = getFindWordInput();
+        
+        if (findNextBtn) {
+            findNextBtn.addEventListener('click', () => this.findWords('next'));
+        }
+        if (findPrevBtn) {
+            findPrevBtn.addEventListener('click', () => this.findWords('prev'));
+        }
+        if (findWordInput) {
+            findWordInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') this.findWords('next');
+            });
+        }
 
         // Generate chains
-        generateChainsBtn.addEventListener('click', () => this.generateChains());
-        chainsWordInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') this.generateChains();
-        });
+        const generateChainsBtn = getGenerateChainsBtn();
+        const chainsWordInput = getChainsWordInput();
+        
+        if (generateChainsBtn) {
+            generateChainsBtn.addEventListener('click', () => this.generateChains());
+        }
+        if (chainsWordInput) {
+            chainsWordInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') this.generateChains();
+            });
+        }
 
         // Manage words
-        addWordsBtn.addEventListener('click', () => this.addWords());
-        removeWordsBtn.addEventListener('click', () => this.removeWords());
-        newWordsInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && e.ctrlKey) this.addWords();
-        });
+        const addWordsBtn = getAddWordsBtn();
+        const removeWordsBtn = getRemoveWordsBtn();
+        const newWordsInput = getNewWordsInput();
+        
+        if (addWordsBtn) {
+            addWordsBtn.addEventListener('click', () => this.addWords());
+        }
+        if (removeWordsBtn) {
+            removeWordsBtn.addEventListener('click', () => this.removeWords());
+        }
+        if (newWordsInput) {
+            newWordsInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && e.ctrlKey) this.addWords();
+            });
+        }
     }
 
     async switchTab(tabName) {
         // Update button states
-        tabButtons.forEach(btn => {
+        getTabButtons().forEach(btn => {
             btn.classList.toggle('active', btn.dataset.tab === tabName);
         });
 
         // Update panel visibility
-        tabPanels.forEach(panel => {
+        getTabPanels().forEach(panel => {
             panel.classList.toggle('active', panel.id === `${tabName}-tab`);
         });
 
@@ -94,14 +127,22 @@ class WordChainApp {
     async togglePin() {
         try {
             this.isPinned = await window.electronAPI.toggleAlwaysOnTop();
-            togglePinBtn.textContent = this.isPinned ? '📌' : '📍';
-            togglePinBtn.title = this.isPinned ? 'Bỏ ghim cửa sổ' : 'Ghim cửa sổ lên trên';
+            const togglePinBtn = getTogglePinBtn();
+            if (togglePinBtn) {
+                togglePinBtn.textContent = this.isPinned ? '📌' : '📍';
+                togglePinBtn.title = this.isPinned ? 'Bỏ ghim cửa sổ' : 'Ghim cửa sổ lên trên';
+            }
         } catch (error) {
-            this.showResult(checkResult, 'Lỗi khi thay đổi trạng thái ghim cửa sổ', 'error');
+            console.error('Lỗi khi thay đổi trạng thái ghim cửa sổ:', error);
         }
     }
 
     async toggleExamples() {
+        const examplesArea = getExamplesArea();
+        const showExamplesBtn = getShowExamplesBtn();
+        
+        if (!examplesArea || !showExamplesBtn) return;
+        
         if (examplesArea.style.display === 'none') {
             try {
                 const examples = await window.electronAPI.getRandomWords(20);
@@ -120,14 +161,26 @@ class WordChainApp {
     async loadStats() {
         try {
             const stats = await window.electronAPI.getStats();
-            totalWordsEl.textContent = stats.totalWords.toLocaleString();
-            userWordsEl.textContent = stats.userAddedWords.toLocaleString();
+            const totalWordsEl = getTotalWordsEl();
+            const userWordsEl = getUserWordsEl();
+            
+            if (totalWordsEl) {
+                totalWordsEl.textContent = stats.totalWords.toLocaleString();
+            }
+            if (userWordsEl) {
+                userWordsEl.textContent = stats.userAddedWords.toLocaleString();
+            }
         } catch (error) {
             console.error('Error loading stats:', error);
         }
     }
 
     async findWords(direction) {
+        const findWordInput = getFindWordInput();
+        const findResult = getFindResult();
+        
+        if (!findWordInput || !findResult) return;
+        
         const word = findWordInput.value.trim();
 
         if (!word) {
@@ -172,6 +225,11 @@ class WordChainApp {
     }
 
     async addWords() {
+        const newWordsInput = getNewWordsInput();
+        const addResult = getAddResult();
+        
+        if (!newWordsInput || !addResult) return;
+        
         const wordsText = newWordsInput.value.trim();
 
         if (!wordsText) {
@@ -212,23 +270,20 @@ class WordChainApp {
             
             await this.loadStats(); // Refresh stats
             await this.loadUserWords(); // Refresh user words list
-            newWordsInput.value = '';
-        } catch (error) {
-            this.showResult(addResult, 'Lỗi khi thêm từ', 'error');
-        }
-    }
-            await this.loadUserWords(); // Refresh user words list
-            
-            const wordList = this.createWordList(words);
-            this.showResult(addResult, `<p style="margin-bottom: 8px;">✅ Đã thêm ${words.length} từ:</p>${wordList}`, 'success');
-            
-            newWordsInput.value = '';
+            if (newWordsInput) {
+                newWordsInput.value = '';
+            }
         } catch (error) {
             this.showResult(addResult, 'Lỗi khi thêm từ', 'error');
         }
     }
 
     async removeWords() {
+        const newWordsInput = getNewWordsInput();
+        const addResult = getAddResult();
+        
+        if (!newWordsInput || !addResult) return;
+        
         const wordsText = newWordsInput.value.trim();
 
         if (!wordsText) {
@@ -262,7 +317,9 @@ class WordChainApp {
             if (hasSuccess) {
                 await this.loadStats(); // Refresh stats
                 await this.loadUserWords(); // Refresh user words list
-                newWordsInput.value = '';
+                if (newWordsInput) {
+                    newWordsInput.value = '';
+                }
             }
         } catch (error) {
             this.showResult(addResult, 'Lỗi khi xóa từ', 'error');
@@ -270,6 +327,13 @@ class WordChainApp {
     }
 
     async generateChains() {
+        const chainsWordInput = getChainsWordInput();
+        const maxChainsInput = getMaxChainsInput();
+        const maxLengthInput = getMaxLengthInput();
+        const chainsResult = getChainsResult();
+        
+        if (!chainsWordInput || !maxChainsInput || !maxLengthInput || !chainsResult) return;
+        
         const word = chainsWordInput.value.trim();
         const maxChains = parseInt(maxChainsInput.value) || 4;
         const maxLength = parseInt(maxLengthInput.value) || 10;
@@ -339,6 +403,7 @@ class WordChainApp {
     async loadUserWords() {
         try {
             const userWords = await window.electronAPI.getUserWords();
+            const userWordsList = getUserWordsList();
             if (userWordsList) {
                 if (userWords.length > 0) {
                     const wordList = this.createWordList(userWords);
