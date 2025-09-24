@@ -1,12 +1,24 @@
 {
   "name": "word-chain-helper",
   "version": "1.0.0",
-  "description": "",
+  "description": "A Node.js utility to help with word chain games where the last letter of one word must match the first letter of the next word.",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "bin": {
+    "word-chain-helper": "./cli.js"
   },
-  "keywords": [],
-  "author": "",
+  "scripts": {
+    "start": "node cli.js",
+    "example": "node index.js",
+    "examples": "node examples.js",
+    "test": "node index.js && echo 'Basic functionality test passed!'"
+  },
+  "keywords": [
+    "word-chain",
+    "word-game",
+    "cli",
+    "helper",
+    "utility"
+  ],
+  "author": "nguongthienTieu",
   "license": "ISC"
 }
