@@ -9,22 +9,11 @@ const examplesArea = document.getElementById('examplesArea');
 const totalWordsEl = document.getElementById('totalWords');
 const userWordsEl = document.getElementById('userWords');
 
-// Check tab elements
-const word1Input = document.getElementById('word1');
-const word2Input = document.getElementById('word2');
-const checkBtn = document.getElementById('checkBtn');
-const checkResult = document.getElementById('checkResult');
-
 // Find tab elements
 const findWordInput = document.getElementById('findWord');
 const findNextBtn = document.getElementById('findNextBtn');
 const findPrevBtn = document.getElementById('findPrevBtn');
 const findResult = document.getElementById('findResult');
-
-// Chain tab elements
-const chainInput = document.getElementById('chainInput');
-const validateChainBtn = document.getElementById('validateChainBtn');
-const chainResult = document.getElementById('chainResult');
 
 // Chains generation tab elements
 const chainsWordInput = document.getElementById('chainsWord');
@@ -64,26 +53,11 @@ class WordChainApp {
         // Examples toggle
         showExamplesBtn.addEventListener('click', () => this.toggleExamples());
 
-        // Check functionality
-        checkBtn.addEventListener('click', () => this.checkWords());
-        word1Input.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') this.checkWords();
-        });
-        word2Input.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') this.checkWords();
-        });
-
         // Find functionality
         findNextBtn.addEventListener('click', () => this.findWords('next'));
         findPrevBtn.addEventListener('click', () => this.findWords('prev'));
         findWordInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') this.findWords('next');
-        });
-
-        // Chain validation
-        validateChainBtn.addEventListener('click', () => this.validateChain());
-        chainInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && e.ctrlKey) this.validateChain();
         });
 
         // Generate chains
@@ -153,27 +127,6 @@ class WordChainApp {
         }
     }
 
-    async checkWords() {
-        const word1 = word1Input.value.trim();
-        const word2 = word2Input.value.trim();
-
-        if (!word1 || !word2) {
-            this.showResult(checkResult, 'Vui lòng nhập cả hai từ để kiểm tra', 'error');
-            return;
-        }
-
-        try {
-            const canChain = await window.electronAPI.canChain(word1, word2);
-            const message = canChain 
-                ? `✅ Có thể nối từ "${word1}" với "${word2}"`
-                : `❌ Không thể nối từ "${word1}" với "${word2}"`;
-            
-            this.showResult(checkResult, message, canChain ? 'success' : 'error');
-        } catch (error) {
-            this.showResult(checkResult, 'Lỗi khi kiểm tra từ', 'error');
-        }
-    }
-
     async findWords(direction) {
         const word = findWordInput.value.trim();
 
@@ -218,44 +171,6 @@ class WordChainApp {
         }
     }
 
-    async validateChain() {
-        const chainText = chainInput.value.trim();
-
-        if (!chainText) {
-            this.showResult(chainResult, 'Vui lòng nhập chuỗi từ để kiểm tra', 'error');
-            return;
-        }
-
-        const chain = chainText.split(',').map(word => word.trim()).filter(word => word);
-
-        if (chain.length < 2) {
-            this.showResult(chainResult, 'Chuỗi từ phải có ít nhất 2 từ', 'error');
-            return;
-        }
-
-        try {
-            const isValid = await window.electronAPI.validateChain(chain);
-            
-            let chainDisplay = '<div class="word-chain">';
-            for (let i = 0; i < chain.length; i++) {
-                const isValidStep = i === 0 || await window.electronAPI.canChain(chain[i-1], chain[i]);
-                chainDisplay += `<span class="chain-item ${isValidStep ? 'valid' : 'invalid'}">${chain[i]}</span>`;
-                if (i < chain.length - 1) {
-                    chainDisplay += ' → ';
-                }
-            }
-            chainDisplay += '</div>';
-
-            const message = isValid 
-                ? `✅ Chuỗi từ hợp lệ! (${chain.length} từ)`
-                : `❌ Chuỗi từ không hợp lệ`;
-
-            this.showResult(chainResult, `<p style="margin-bottom: 8px;">${message}</p>${chainDisplay}`, isValid ? 'success' : 'error');
-        } catch (error) {
-            this.showResult(chainResult, 'Lỗi khi kiểm tra chuỗi từ', 'error');
-        }
-    }
-
     async addWords() {
         const wordsText = newWordsInput.value.trim();
 
@@ -272,8 +187,36 @@ class WordChainApp {
         }
 
         try {
-            await window.electronAPI.addWords(words);
+            const result = await window.electronAPI.addWords(words);
+            
+            if (result) {
+                // Display results with validation feedback
+                let message = '';
+                if (result.added.length > 0) {
+                    message += `✅ Đã thêm ${result.added.length} từ: ${result.added.join(', ')}`;
+                }
+                if (result.duplicates.length > 0) {
+                    if (message) message += '<br>';
+                    message += `⚠️ ${result.duplicates.length} từ đã tồn tại: ${result.duplicates.join(', ')}`;
+                }
+                if (result.rejected.length > 0) {
+                    if (message) message += '<br>';
+                    message += `❌ ${result.rejected.length} từ không hợp lệ: ${result.rejected.join(', ')}`;
+                }
+                
+                const hasSuccess = result.added.length > 0;
+                this.showResult(addResult, message, hasSuccess ? 'success' : 'warning');
+            } else {
+                this.showResult(addResult, `Đã thêm ${words.length} từ thành công`, 'success');
+            }
+            
             await this.loadStats(); // Refresh stats
+            await this.loadUserWords(); // Refresh user words list
+            newWordsInput.value = '';
+        } catch (error) {
+            this.showResult(addResult, 'Lỗi khi thêm từ', 'error');
+        }
+    }
             await this.loadUserWords(); // Refresh user words list
             
             const wordList = this.createWordList(words);
@@ -301,14 +244,26 @@ class WordChainApp {
         }
 
         try {
-            await window.electronAPI.removeWords(words);
-            await this.loadStats(); // Refresh stats
-            await this.loadUserWords(); // Refresh user words list
+            const result = await window.electronAPI.removeWords(words);
             
-            const wordList = this.createWordList(words);
-            this.showResult(addResult, `<p style="margin-bottom: 8px;">✅ Đã xóa ${words.length} từ:</p>${wordList}`, 'success');
+            // Display results with validation feedback
+            let message = '';
+            if (result.removed.length > 0) {
+                message += `✅ Đã xóa ${result.removed.length} từ: ${result.removed.join(', ')}`;
+            }
+            if (result.notFound.length > 0) {
+                if (message) message += '<br>';
+                message += `❌ ${result.notFound.length} từ không có trong danh sách người dùng: ${result.notFound.join(', ')}`;
+            }
             
-            newWordsInput.value = '';
+            const hasSuccess = result.removed.length > 0;
+            this.showResult(addResult, message, hasSuccess ? 'success' : 'warning');
+            
+            if (hasSuccess) {
+                await this.loadStats(); // Refresh stats
+                await this.loadUserWords(); // Refresh user words list
+                newWordsInput.value = '';
+            }
         } catch (error) {
             this.showResult(addResult, 'Lỗi khi xóa từ', 'error');
         }

@@ -6,6 +6,11 @@
  */
 
 const vietnameseDict = require('./vietnamese-dictionary');
+const hongocducDict = require('./hongocduc-dictionary');
+const tudientvDict = require('./tudientv-dictionary');
+const wiktionaryDict = require('./wiktionary-dictionary');
+const fs = require('fs');
+const path = require('path');
 
 class WordChainHelper {
     constructor() {
@@ -14,9 +19,16 @@ class WordChainHelper {
         this.deadWords = new Set(); // Từ "chết" - không thể tiếp tục
         this.wordHistory = new Map(); // Theo dõi lịch sử sử dụng từ
         this.userWords = new Set(); // Từ do người dùng thêm vào
+        this.userWordsFile = path.join(__dirname, 'user-words.json');
         
-        // Tự động tải từ điển tiếng Việt từ @undertheseanlp/dictionary
+        // Tự động tải từ điển tiếng Việt từ các nguồn @undertheseanlp/dictionary
         this.addWords(vietnameseDict.getAllWords());
+        this.addWords(hongocducDict.getAllWords());
+        this.addWords(tudientvDict.getAllWords());
+        this.addWords(wiktionaryDict.getAllWords());
+        
+        // Tải từ do người dùng thêm vào từ file
+        this.loadUserWords();
     }
 
     /**
@@ -63,44 +75,85 @@ class WordChainHelper {
      * Thêm từ vào cơ sở dữ liệu
      * @param {string[]} wordList - Danh sách từ cần thêm
      * @param {boolean} isUserAdded - Có phải từ do người dùng thêm vào không
+     * @returns {object} Kết quả với các từ thêm thành công và thất bại
      */
     addWords(wordList, isUserAdded = false) {
+        const results = {
+            added: [],
+            rejected: [],
+            duplicates: []
+        };
+        
         wordList.forEach(word => {
             if (typeof word === 'string' && word.length > 0) {
                 const normalizedWord = word.toLowerCase().trim();
                 
                 // Kiểm tra từ ghép hợp lệ cho tiếng Việt
                 if (this.isValidCompoundWord(normalizedWord)) {
-                    this.words.add(normalizedWord);
-                    if (isUserAdded) {
-                        this.userWords.add(normalizedWord);
+                    if (isUserAdded && this.words.has(normalizedWord)) {
+                        // Từ đã tồn tại - không hợp lệ khi thêm từ người dùng
+                        results.duplicates.push(normalizedWord);
+                    } else {
+                        this.words.add(normalizedWord);
+                        if (isUserAdded) {
+                            this.userWords.add(normalizedWord);
+                        }
+                        results.added.push(normalizedWord);
                     }
+                } else if (isUserAdded) {
+                    results.rejected.push(normalizedWord);
                 }
             }
         });
+        
+        // Lưu từ người dùng vào file khi có thay đổi
+        if (isUserAdded && (results.added.length > 0 || results.duplicates.length > 0)) {
+            this.saveUserWords();
+        }
         
         // Chỉ cập nhật từ "chết" khi cần thiết (không phải khi khởi tạo với từ điển lớn)
         if (isUserAdded || wordList.length < 1000) {
             this.updateDeadWords();
         }
+        
+        return isUserAdded ? results : null;
     }
 
     /**
      * Xóa từ khỏi cơ sở dữ liệu
      * @param {string[]} wordList - Danh sách từ cần xóa
+     * @returns {object} Kết quả với các từ xóa thành công và thất bại
      */
     removeWords(wordList) {
+        const results = {
+            removed: [],
+            notFound: []
+        };
+        
         wordList.forEach(word => {
             if (typeof word === 'string') {
                 const normalizedWord = word.toLowerCase().trim();
-                this.words.delete(normalizedWord);
-                this.userWords.delete(normalizedWord);
-                this.deadWords.delete(normalizedWord);
+                
+                if (this.userWords.has(normalizedWord)) {
+                    this.words.delete(normalizedWord);
+                    this.userWords.delete(normalizedWord);
+                    this.deadWords.delete(normalizedWord);
+                    results.removed.push(normalizedWord);
+                } else {
+                    // Từ không có trong danh sách từ người dùng - không hợp lệ
+                    results.notFound.push(normalizedWord);
+                }
             }
         });
         
-        // Cập nhật từ "chết" sau khi xóa từ
-        this.updateDeadWords();
+        // Lưu từ người dùng vào file khi có thay đổi
+        if (results.removed.length > 0) {
+            this.saveUserWords();
+            // Cập nhật từ "chết" sau khi xóa từ
+            this.updateDeadWords();
+        }
+        
+        return results;
     }
 
     /**
@@ -479,6 +532,40 @@ class WordChainHelper {
     setLanguage() {
         // Không làm gì - tool chỉ hỗ trợ tiếng Việt
         console.log('Tool này chỉ hỗ trợ tiếng Việt');
+    }
+
+    /**
+     * Tải từ do người dùng thêm vào từ file
+     */
+    loadUserWords() {
+        try {
+            if (fs.existsSync(this.userWordsFile)) {
+                const data = fs.readFileSync(this.userWordsFile, 'utf8');
+                const userWordsArray = JSON.parse(data);
+                if (Array.isArray(userWordsArray)) {
+                    userWordsArray.forEach(word => {
+                        if (typeof word === 'string' && this.isValidCompoundWord(word)) {
+                            this.words.add(word);
+                            this.userWords.add(word);
+                        }
+                    });
+                }
+            }
+        } catch (error) {
+            console.error('Lỗi khi tải từ người dùng:', error.message);
+        }
+    }
+
+    /**
+     * Lưu từ do người dùng thêm vào file
+     */
+    saveUserWords() {
+        try {
+            const userWordsArray = Array.from(this.userWords);
+            fs.writeFileSync(this.userWordsFile, JSON.stringify(userWordsArray, null, 2), 'utf8');
+        } catch (error) {
+            console.error('Lỗi khi lưu từ người dùng:', error.message);
+        }
     }
 
     /**
