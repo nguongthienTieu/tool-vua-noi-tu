@@ -14,11 +14,11 @@ Sử dụng nguồn từ điển từ **@undertheseanlp/dictionary** với hơn 
 - ✅ **Giao diện desktop**: Ứng dụng Electron với cửa sổ nhỏ có thể đè lên các ứng dụng khác
 - ✅ **Luôn ở trên**: Có thể ghim cửa sổ để luôn hiển thị trên cùng
 - ✅ **Tìm từ tiếp theo/trước**: Tìm tất cả từ có thể đến trước/sau trong chuỗi
-- ✅ **Phát hiện từ "chết"**: 💀 Đánh dấu từ không thể tiếp tục (kết thúc trò chơi)
-- ✅ **Tìm chuỗi từ chết**: 🎯 Tự động tìm 3-5 chuỗi từ dẫn đến từ "chết" (kết thúc game)
+- ✅ **Phát hiện từ "kết thúc"**: 💀 Đánh dấu từ không thể tiếp tục (kết thúc trò chơi)
+- ✅ **Tìm chuỗi kết thúc**: 🎯 Tự động tìm 3-5 chuỗi từ dẫn đến từ "kết thúc" (kết thúc game)
 - ✅ **Xếp hạng chuỗi**: Ưu tiên hiển thị theo độ dài (ngắn đến dài)
 - ✅ **Từ 2 âm tiết**: 📝 Chỉ hỗ trợ từ ghép tiếng Việt có đúng 2 âm tiết
-- ✅ **Thống kê từ điển**: Phân tích phân bố âm tiết, từ "chết", v.v.
+- ✅ **Thống kê từ điển**: Phân tích phân bố âm tiết, từ "kết thúc", v.v.
 - ✅ **Quản lý từ nâng cao**: Thêm, xóa từ với lưu trữ bền vững
 - ✅ **Lưu trữ bền vững**: Từ do người dùng thêm được lưu và khôi phục khi khởi động lại
 - ✅ **Kiểm tra trùng lặp**: Không cho phép thêm từ đã tồn tại
@@ -116,10 +116,10 @@ node vietnamese-examples.js
 #### Phương thức cơ bản
 - `addWords(wordList, isUserAdded)` - Thêm mảng từ vào cơ sở dữ liệu
 - `canChain(word1, word2)` - Kiểm tra hai từ có nối được không
-- `findNextWords(word, prioritizeDeadWords, returnSimpleArray)` - Tìm từ có thể theo sau với hỗ trợ từ "chết"
+- `findNextWords(word, prioritizeDeadWords, returnSimpleArray)` - Tìm từ có thể theo sau với hỗ trợ từ "kết thúc"
 - `findPreviousWords(word)` - Tìm tất cả từ có thể đứng trước từ đã cho
 - `generateWordChains(startWord, maxChains, maxLength)` - Tạo chuỗi từ tự động (legacy)
-- `findChainsToDeadWords(startWord, maxChains, maxLength)` - **MỚI**: Tìm 3-5 chuỗi dẫn đến từ "chết"
+- `findChainsToDeadWords(startWord, maxChains, maxLength)` - **MỚI**: Tìm 3-5 chuỗi dẫn đến từ "kết thúc"
 - `validateChain(chain)` - Xác thực chuỗi từ ghép có hợp lệ không
 - `hasNextWords(word)` - **MỚI**: Kiểm tra từ có thể tiếp tục không
 - `getStats()` - Lấy thống kê về cơ sở dữ liệu từ
@@ -131,10 +131,10 @@ node vietnamese-examples.js
 - `updateWord(oldWord, newWord)` - Thay thế từ cũ bằng từ mới  
 - `getUserWords()` - Lấy tất cả từ do người dùng thêm
 
-#### Từ "chết"
-- `updateDeadWords()` - Cập nhật danh sách từ "chết"
-- `getDeadWords()` - Lấy tất cả từ "chết" (từ không thể tiếp tục chuỗi)
-- `isDeadWord(word)` - Kiểm tra từ có phải từ "chết" không
+#### Từ "kết thúc"
+- `updateDeadWords()` - Cập nhật danh sách từ "kết thúc"
+- `getDeadWords()` - Lấy tất cả từ "kết thúc" (từ không thể tiếp tục chuỗi)
+- `isDeadWord(word)` - Kiểm tra từ có phải từ "kết thúc" không
 
 #### Hỗ trợ tiếng Việt
 - `getLanguage()` - Lấy ngôn ngữ hiện tại (luôn là 'vietnamese')
@@ -156,16 +156,16 @@ console.log(helper.canChain('con voi', 'voi biển')); // true
 console.log(helper.canChain('hoa đào', 'tạo nên')); // false
 ```
 
-### Ví dụ 2: Tìm từ với phát hiện từ "chết" (MỚI)
+### Ví dụ 2: Tìm từ với phát hiện từ "kết thúc" (MỚI)
 ```javascript
 const helper = new WordChainHelper();
 
-// Format nâng cao với thông tin từ "chết"
+// Format nâng cao với thông tin từ "kết thúc"
 const nextWords = helper.findNextWords('bánh mì', true, false);
 console.log(nextWords);
 // → [
 //     { word: 'mì chính', isDead: false },
-//     { word: 'mì thánh', isDead: true }, // Từ "chết" - có thể kết thúc game
+//     { word: 'mì thánh', isDead: true }, // Từ "kết thúc" - có thể kết thúc game
 //     { word: 'mì ăn liền', isDead: false }
 //   ]
 
@@ -174,11 +174,11 @@ const simpleWords = helper.findNextWords('bánh mì', true, true);
 console.log(simpleWords); // → ['mì chính', 'mì thánh', 'mì ăn liền']
 ```
 
-### Ví dụ 3: Tìm chuỗi từ dẫn đến từ chết (MỚI)
+### Ví dụ 3: Tìm chuỗi từ dẫn đến kết thúc (MỚI)
 ```javascript
 const helper = new WordChainHelper();
 
-// Tìm 3-5 chuỗi từ "bánh mì" dẫn đến từ "chết" (kết thúc game)
+// Tìm 3-5 chuỗi từ "bánh mì" dẫn đến từ "kết thúc" (kết thúc game)
 const chains = helper.findChainsToDeadWords('bánh mì', 5, 10);
 console.log(chains);
 // → [

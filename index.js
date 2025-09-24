@@ -16,7 +16,7 @@ class WordChainHelper {
     constructor() {
         this.words = new Set();
         this.language = 'vietnamese'; // Chỉ hỗ trợ tiếng Việt
-        this.deadWords = new Set(); // Từ "chết" - không thể tiếp tục
+        this.deadWords = new Set(); // Từ "kết thúc" - không thể tiếp tục
         this.wordHistory = new Map(); // Theo dõi lịch sử sử dụng từ
         this.userWords = new Set(); // Từ do người dùng thêm vào
         this.userWordsFile = path.join(__dirname, 'user-words.json');
@@ -111,7 +111,7 @@ class WordChainHelper {
             this.saveUserWords();
         }
         
-        // Chỉ cập nhật từ "chết" khi cần thiết (không phải khi khởi tạo với từ điển lớn)
+        // Chỉ cập nhật từ "kết thúc" khi cần thiết (không phải khi khởi tạo với từ điển lớn)
         if (isUserAdded || wordList.length < 1000) {
             this.updateDeadWords();
         }
@@ -149,7 +149,7 @@ class WordChainHelper {
         // Lưu từ người dùng vào file khi có thay đổi
         if (results.removed.length > 0) {
             this.saveUserWords();
-            // Cập nhật từ "chết" sau khi xóa từ
+            // Cập nhật từ "kết thúc" sau khi xóa từ
             this.updateDeadWords();
         }
         
@@ -189,7 +189,7 @@ class WordChainHelper {
     /**
      * Tìm tất cả từ có thể theo sau từ đã cho (backward compatible version)
      * @param {string} word - Từ hiện tại
-     * @param {boolean} prioritizeDeadWords - Ưu tiên từ "chết" lên đầu
+     * @param {boolean} prioritizeDeadWords - Ưu tiên từ "kết thúc" lên đầu
      * @param {boolean} returnSimpleArray - Trả về mảng đơn giản thay vì objects với metadata
      * @returns {Array} Mảng các từ có thể theo sau
      */
@@ -383,6 +383,8 @@ class WordChainHelper {
         const queue = [[startWord]]; // Queue of current chains
         let processedCount = 0;
         const maxProcessed = 2000; // Increased limit to find more dead word chains
+        const visitedWords = new Set(); // Cache to avoid re-processing same words
+        const deadWordCache = new Map(); // Cache dead word status
         
         while (queue.length > 0 && chains.length < maxChains && processedCount < maxProcessed) {
             const currentChain = queue.shift();
@@ -393,9 +395,25 @@ class WordChainHelper {
             }
             
             const currentWord = currentChain[currentChain.length - 1];
-            const nextWordsData = this.findNextWords(currentWord, false, true); // Get simple array
             
-            if (nextWordsData.length === 0) {
+            // Check if we've already processed this word at this depth
+            const cacheKey = `${currentWord}_${currentChain.length}`;
+            if (visitedWords.has(cacheKey)) {
+                continue;
+            }
+            visitedWords.add(cacheKey);
+            
+            // Use cached dead word status if available
+            let isDeadWord = false;
+            if (deadWordCache.has(currentWord)) {
+                isDeadWord = deadWordCache.get(currentWord);
+            } else {
+                const nextWordsData = this.findNextWords(currentWord, false, true); // Get simple array
+                isDeadWord = nextWordsData.length === 0;
+                deadWordCache.set(currentWord, isDeadWord);
+            }
+            
+            if (isDeadWord) {
                 // This is a dead word - save the chain if it's meaningful
                 if (currentChain.length >= 2) {
                     const chainKey = currentChain.join('|');
@@ -406,8 +424,15 @@ class WordChainHelper {
                 }
             } else if (currentChain.length < maxLength) {
                 // Continue building chains - only explore if we haven't reached max length
-                const wordsToTry = nextWordsData.slice(0, Math.min(4, nextWordsData.length));
+                const nextWordsData = this.findNextWords(currentWord, false, true);
+                // Limit exploration to first few words for better performance
+                const wordsToTry = nextWordsData.slice(0, Math.min(3, nextWordsData.length));
                 for (const nextWord of wordsToTry) {
+                    // Avoid cycles by checking if word is already in current chain
+                    if (currentChain.includes(nextWord)) {
+                        continue;
+                    }
+                    
                     const newChain = [...currentChain, nextWord];
                     const newChainKey = newChain.join('|');
                     
@@ -498,7 +523,7 @@ class WordChainHelper {
     updateDeadWords() {
         // Skip for performance when dealing with large dictionaries  
         if (this.words.size > 10000) {
-            console.log('Bỏ qua cập nhật từ "chết" do từ điển lớn (tối ưu hóa hiệu năng)');
+            console.log('Bỏ qua cập nhật từ "kết thúc" do từ điển lớn (tối ưu hóa hiệu năng)');
             return;
         }
         
@@ -709,10 +734,10 @@ if (require.main === module) {
     console.log('- Tổng số từ:', stats.totalWords);
     console.log('- Từ ghép hợp lệ:', stats.compoundWords);
     console.log('- Từ do người dùng thêm:', stats.userAddedWords);
-    console.log('- Từ "chết" (không thể tiếp tục):', stats.deadWords);
+    console.log('- Từ "kết thúc" (không thể tiếp tục):', stats.deadWords);
     
     if (stats.deadWords > 0) {
-        console.log('\nMột số từ "chết":', vietnameseHelper.getDeadWords().slice(0, 5));
+        console.log('\nMột số từ "kết thúc":', vietnameseHelper.getDeadWords().slice(0, 5));
     }
     
     console.log('\n*** Tool này chỉ hỗ trợ từ ghép tiếng Việt từ nguồn @undertheseanlp/dictionary ***');
