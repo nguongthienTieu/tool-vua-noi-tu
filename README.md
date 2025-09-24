@@ -1,24 +1,29 @@
-# Trợ giúp Từ Ghép Tiếng Việt
+# Goat Tiếng Việt Beng
 
 Ứng dụng desktop Node.js/Electron hỗ trợ trò chơi từ ghép tiếng Việt với quy luật: **Âm tiết cuối của từ ghép này phải trùng với âm tiết đầu của từ ghép tiếp theo**.
 
-Sử dụng nguồn từ điển từ **@undertheseanlp/dictionary** với hơn 25,000 từ ghép tiếng Việt.
+Sử dụng nguồn từ điển từ **@undertheseanlp/dictionary** với hơn 120,000 từ ghép tiếng Việt từ 4 nguồn dữ liệu.
 
 ## Tính năng
 
-- ✅ **Từ điển lớn**: Hơn 25,000 từ ghép tiếng Việt từ @undertheseanlp/dictionary
+- ✅ **Từ điển siêu lớn**: Hơn 120,000 từ ghép tiếng Việt từ 4 nguồn @undertheseanlp/dictionary:
+  - Từ điển gốc (25,410 từ)
+  - Nguồn hongocduc (64,668 từ)  
+  - Nguồn tudientv (30,356 từ)
+  - Nguồn wiktionary (27,149 từ)
 - ✅ **Giao diện desktop**: Ứng dụng Electron với cửa sổ nhỏ có thể đè lên các ứng dụng khác
 - ✅ **Luôn ở trên**: Có thể ghim cửa sổ để luôn hiển thị trên cùng
-- ✅ **Kiểm tra nối từ**: Xác định hai từ ghép có thể nối với nhau không
 - ✅ **Tìm từ tiếp theo/trước**: Tìm tất cả từ có thể đến trước/sau trong chuỗi
 - ✅ **Phát hiện từ "chết"**: 💀 Đánh dấu từ không thể tiếp tục (kết thúc trò chơi)
 - ✅ **Tạo chuỗi từ**: Tự động tạo ra 4 chuỗi từ có thể từ một từ bất kỳ
 - ✅ **Xếp hạng chuỗi**: Ưu tiên hiển thị theo độ dài (ngắn đến dài)
-- ✅ **Xác thực chuỗi từ**: Kiểm tra tính hợp lệ của toàn bộ chuỗi từ ghép  
 - ✅ **Thống kê từ điển**: Phân tích phân bố âm tiết, từ "chết", v.v.
-- ✅ **Quản lý từ nâng cao**: Thêm, xóa từ với cập nhật từ "chết" tự động
+- ✅ **Quản lý từ nâng cao**: Thêm, xóa từ với lưu trữ bền vững
+- ✅ **Lưu trữ bền vững**: Từ do người dùng thêm được lưu và khôi phục khi khởi động lại
+- ✅ **Kiểm tra trùng lặp**: Không cho phép thêm từ đã tồn tại
+- ✅ **Xác thực xóa từ**: Chỉ cho phép xóa từ do người dùng thêm
 - ✅ **Lịch sử sử dụng**: Theo dõi tần suất sử dụng các từ
-- ✅ **Tối ưu hóa**: Hiệu suất cao với từ điển lớn
+- ✅ **Tối ưu hóa**: Hiệu suất cao với từ điển siêu lớn
 
 ## Cài đặt
 
@@ -239,7 +244,23 @@ console.log(`Âm tiết phổ biến:`, Object.keys(stats.syllableStats).slice(0
 
 ## Nguồn từ điển
 
-Công cụ sử dụng từ điển từ **@undertheseanlp/dictionary** - một dự án mã nguồn mở cung cấp từ điển tiếng Việt chất lượng cao với hơn 25,000 từ ghép.
+Công cụ sử dụng từ điển từ **@undertheseanlp/dictionary** - một dự án mã nguồn mở cung cấp từ điển tiếng Việt chất lượng cao với hơn 120,000 từ ghép từ 4 nguồn dữ liệu khác nhau:
+
+- **Nguồn gốc**: 25,410 từ ghép được tinh chọn
+- **Nguồn hongocduc**: 64,668 từ từ dự án hongocduc 
+- **Nguồn tudientv**: 30,356 từ từ TudienTV
+- **Nguồn wiktionary**: 27,149 từ từ Wiktionary Vietnamese
+
+Tổng cộng: **147,583 từ duy nhất** sau khi loại bỏ trùng lặp.
+
+## Lưu trữ bền vững
+
+Ứng dụng hiện hỗ trợ lưu trữ bền vững cho từ do người dùng thêm:
+
+- Từ được lưu tự động vào file `user-words.json`
+- Khôi phục từ khi khởi động lại ứng dụng
+- Kiểm tra trùng lặp khi thêm từ mới
+- Chỉ cho phép xóa từ do người dùng thêm
 
 ## Giấy phép
 

@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trợ giúp Từ Ghép Tiếng Việt</title>
+    <title>Goat Tiếng Việt Beng</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="app-container">
         <!-- Header with title and controls -->
         <header class="app-header">
-            <h1>Trợ giúp Từ Ghép</h1>
+            <h1>Goat Tiếng Việt Beng</h1>
             <button id="togglePinBtn" class="control-btn" title="Bật/tắt luôn ở trên">📌</button>
         </header>
 
@@ -30,31 +30,15 @@
 
         <!-- Main functionality tabs -->
         <nav class="tab-nav">
-            <button class="tab-btn active" data-tab="check">Kiểm tra</button>
-            <button class="tab-btn" data-tab="find">Tìm từ</button>
+            <button class="tab-btn active" data-tab="find">Tìm từ</button>
             <button class="tab-btn" data-tab="chains">Tạo chuỗi</button>
-            <button class="tab-btn" data-tab="chain">Kiểm tra chuỗi</button>
             <button class="tab-btn" data-tab="manage">Quản lý từ</button>
         </nav>
 
         <!-- Tab content -->
         <main class="tab-content">
-            <!-- Check words tab -->
-            <div id="check-tab" class="tab-panel active">
-                <div class="input-group">
-                    <label for="word1">Từ thứ nhất:</label>
-                    <input type="text" id="word1" placeholder="VD: bánh mì">
-                </div>
-                <div class="input-group">
-                    <label for="word2">Từ thứ hai:</label>
-                    <input type="text" id="word2" placeholder="VD: mì quảng">
-                </div>
-                <button id="checkBtn" class="action-btn">Kiểm tra nối từ</button>
-                <div id="checkResult" class="result-area"></div>
-            </div>
-
             <!-- Find words tab -->
-            <div id="find-tab" class="tab-panel">
+            <div id="find-tab" class="tab-panel active">
                 <div class="input-group">
                     <label for="findWord">Nhập từ:</label>
                     <input type="text" id="findWord" placeholder="VD: con voi">
@@ -66,7 +50,7 @@
                 <div id="findResult" class="result-area"></div>
             </div>
 
-            <!-- Generate chains tab (NEW) -->
+            <!-- Generate chains tab -->
             <div id="chains-tab" class="tab-panel">
                 <div class="input-group">
                     <label for="chainsWord">Nhập từ để tạo chuỗi:</label>
@@ -86,17 +70,7 @@
                 <div id="chainsResult" class="result-area"></div>
             </div>
 
-            <!-- Chain validation tab -->
-            <div id="chain-tab" class="tab-panel">
-                <div class="input-group">
-                    <label for="chainInput">Chuỗi từ (cách nhau bằng dấu phẩy):</label>
-                    <textarea id="chainInput" placeholder="VD: bánh mì, mì quảng, quảng nam" rows="3"></textarea>
-                </div>
-                <button id="validateChainBtn" class="action-btn">Kiểm tra chuỗi</button>
-                <div id="chainResult" class="result-area"></div>
-            </div>
-
-            <!-- Add words tab -->
+            <!-- Word management tab -->
             <div id="manage-tab" class="tab-panel">
                 <div class="input-group">
                     <label for="newWords">Từ mới (cách nhau bằng dấu phẩy):</label>

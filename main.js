@@ -31,7 +31,7 @@ class ElectronWordChainApp {
                 preload: path.join(__dirname, 'preload.js')
             },
             icon: path.join(__dirname, 'assets', 'icon.png'), // optional icon
-            title: 'Trợ giúp Từ Ghép Tiếng Việt'
+            title: 'Goat Tiếng Việt Beng'
         });
 
         // Load the HTML file
@@ -82,13 +82,11 @@ class ElectronWordChainApp {
         });
 
         ipcMain.handle('add-words', async (event, words) => {
-            this.wordChainHelper.addWords(words, true);
-            return true;
+            return this.wordChainHelper.addWords(words, true);
         });
 
         ipcMain.handle('remove-words', async (event, words) => {
-            this.wordChainHelper.removeWords(words);
-            return true;
+            return this.wordChainHelper.removeWords(words);
         });
 
         ipcMain.handle('get-user-words', async (event) => {

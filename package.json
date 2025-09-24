@@ -1,7 +1,7 @@
 {
   "name": "word-chain-helper",
   "version": "2.0.0",
-  "description": "Trợ giúp từ ghép tiếng Việt - Ứng dụng desktop hỗ trợ trò chơi từ ghép tiếng Việt sử dụng nguồn từ điển từ @undertheseanlp/dictionary với 25,000+ từ ghép tiếng Việt.",
+  "description": "Goat Tiếng Việt Beng - Ứng dụng desktop hỗ trợ trò chơi từ ghép tiếng Việt sử dụng nguồn từ điển từ @undertheseanlp/dictionary với 120,000+ từ ghép tiếng Việt từ 4 nguồn dữ liệu.",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
