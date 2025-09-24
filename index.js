@@ -332,105 +332,47 @@ class WordChainHelper {
     }
 
     /**
-     * Find shortest chains using BFS algorithm (optimized for speed)
-     * @param {string} startWord - The starting word for the chains
-     * @param {number} maxChains - Maximum number of chains to find (default: 5, range 3-5)
-     * @param {number} maxLength - Maximum length of each chain (default: 10)
-     * @returns {Array} Array of chain objects with shortest paths, sorted by length
-     */
-    findShortestChainsBFS(startWord, maxChains = 5, maxLength = 10) {
-        if (!startWord || typeof startWord !== 'string') {
-            return [];
-        }
-
-        // Ensure maxChains is between 3-5 as per requirements
-        maxChains = Math.max(3, Math.min(5, maxChains));
-
-        const chains = [];
-        const chainStrings = new Set();
-        
-        // Use optimized BFS to find shortest chains to dead words
-        this._findShortestChainsBFS(startWord, chains, chainStrings, maxChains, maxLength);
-        
-        // Process chains to add metadata
-        const processedChains = chains.map(chain => {
-            const lastWord = chain[chain.length - 1];
-            const canContinue = this.hasNextWords(lastWord);
-            
-            return {
-                chain: [...chain],
-                length: chain.length,
-                canContinue: canContinue,
-                isGameEnding: !canContinue,
-                lastWord: lastWord,
-                algorithm: 'BFS'
-            };
-        });
-
-        // Filter only chains that end with dead words (game ending)
-        const gameEndingChains = processedChains.filter(chain => chain.isGameEnding);
-
-        // Sort by length (shortest to longest) - BFS naturally finds shortest first
-        gameEndingChains.sort((a, b) => a.length - b.length);
-        
-        return gameEndingChains.slice(0, maxChains);
-    }
-
-    /**
-     * Find all possible chains to dead words using DFS algorithm (optimized)
-     * @param {string} startWord - The starting word for the chains
-     * @param {number} maxChains - Maximum number of chains to find (default: 5, range 3-5)
-     * @param {number} maxLength - Maximum length of each chain (default: 10)
-     * @returns {Array} Array of chain objects with all paths to end, sorted by length
-     */
-    findAllChainsToEndDFS(startWord, maxChains = 5, maxLength = 10) {
-        if (!startWord || typeof startWord !== 'string') {
-            return [];
-        }
-
-        // Ensure maxChains is between 3-5 as per requirements
-        maxChains = Math.max(3, Math.min(5, maxChains));
-
-        const chains = [];
-        const chainStrings = new Set();
-        
-        // Use optimized DFS to find all paths to dead words
-        this._findAllChainsToEndDFS(startWord, chains, chainStrings, maxChains, maxLength);
-        
-        // Process chains to add metadata
-        const processedChains = chains.map(chain => {
-            const lastWord = chain[chain.length - 1];
-            const canContinue = this.hasNextWords(lastWord);
-            
-            return {
-                chain: [...chain],
-                length: chain.length,
-                canContinue: canContinue,
-                isGameEnding: !canContinue,
-                lastWord: lastWord,
-                algorithm: 'DFS'
-            };
-        });
-
-        // Filter only chains that end with dead words (game ending)
-        const gameEndingChains = processedChains.filter(chain => chain.isGameEnding);
-
-        // Sort by length (shortest to longest) 
-        gameEndingChains.sort((a, b) => a.length - b.length);
-        
-        return gameEndingChains.slice(0, maxChains);
-    }
-
-    /**
-     * Find chains that lead to dead words (game-ending chains) - LEGACY method
+     * Find chains that lead to dead words (game-ending chains)
      * @param {string} startWord - The starting word for the chains
      * @param {number} maxChains - Maximum number of chains to find (default: 5, range 3-5)
      * @param {number} maxLength - Maximum length of each chain (default: 10)
      * @returns {Array} Array of chain objects that lead to dead words, sorted by length
      */
     findChainsToDeadWords(startWord, maxChains = 5, maxLength = 10) {
-        // Default to BFS for backward compatibility
-        return this.findShortestChainsBFS(startWord, maxChains, maxLength);
+        if (!startWord || typeof startWord !== 'string') {
+            return [];
+        }
+
+        // Ensure maxChains is between 3-5 as per requirements
+        maxChains = Math.max(3, Math.min(5, maxChains));
+
+        const chains = [];
+        const chainStrings = new Set(); // To avoid duplicate chains
+        
+        // Use BFS to find chains that end with dead words
+        this._findChainsToDeadWordsIterative(startWord, chains, chainStrings, maxChains, maxLength);
+        
+        // Process chains to add metadata
+        const processedChains = chains.map(chain => {
+            const lastWord = chain[chain.length - 1];
+            const canContinue = this.hasNextWords(lastWord);
+            
+            return {
+                chain: [...chain],
+                length: chain.length,
+                canContinue: canContinue,
+                isGameEnding: !canContinue, // Should be true for our purpose
+                lastWord: lastWord
+            };
+        });
+
+        // Filter only chains that end with dead words (game ending)
+        const gameEndingChains = processedChains.filter(chain => chain.isGameEnding);
+
+        // Sort by length (shortest to longest) as requested
+        gameEndingChains.sort((a, b) => a.length - b.length);
+        
+        return gameEndingChains.slice(0, maxChains);
     }
 
     /**
@@ -500,149 +442,6 @@ class WordChainHelper {
                 }
             }
         }
-    }
-
-    /**
-     * Optimized BFS algorithm for finding shortest chains to dead words
-     * @private
-     */
-    _findShortestChainsBFS(startWord, chains, chainStrings, maxChains, maxLength) {
-        const queue = [[startWord]]; // Queue of current chains
-        let processedCount = 0;
-        const maxProcessed = 3000; // Increased limit for better results
-        const visitedStates = new Set(); // Track visited word-depth combinations
-        const deadWordCache = new Map(); // Cache dead word status for performance
-        const nextWordsCache = new Map(); // Cache next words for performance
-        
-        while (queue.length > 0 && chains.length < maxChains && processedCount < maxProcessed) {
-            const currentChain = queue.shift();
-            processedCount++;
-            
-            if (currentChain.length > maxLength) {
-                continue;
-            }
-            
-            const currentWord = currentChain[currentChain.length - 1];
-            
-            // Optimized state tracking - prevent revisiting same word at same depth
-            const stateKey = `${currentWord}_${currentChain.length}`;
-            if (visitedStates.has(stateKey)) {
-                continue;
-            }
-            visitedStates.add(stateKey);
-            
-            // Use cached dead word status if available
-            let isDeadWord = false;
-            if (deadWordCache.has(currentWord)) {
-                isDeadWord = deadWordCache.get(currentWord);
-            } else {
-                const nextWordsData = this._getCachedNextWords(currentWord, nextWordsCache);
-                isDeadWord = nextWordsData.length === 0;
-                deadWordCache.set(currentWord, isDeadWord);
-            }
-            
-            if (isDeadWord && currentChain.length >= 2) {
-                // Found a dead word - this is a valid ending chain
-                const chainKey = currentChain.join('|');
-                if (!chainStrings.has(chainKey)) {
-                    chains.push([...currentChain]);
-                    chainStrings.add(chainKey);
-                }
-            } else if (!isDeadWord && currentChain.length < maxLength) {
-                // Continue building the chain - get next words efficiently
-                const nextWordsData = this._getCachedNextWords(currentWord, nextWordsCache);
-                
-                // Limit branching factor for performance (top 4 options)
-                const wordsToTry = nextWordsData.slice(0, Math.min(4, nextWordsData.length));
-                
-                for (const nextWord of wordsToTry) {
-                    // Avoid cycles in the chain
-                    if (!currentChain.includes(nextWord)) {
-                        const newChain = [...currentChain, nextWord];
-                        const newStateKey = `${nextWord}_${newChain.length}`;
-                        
-                        if (!visitedStates.has(newStateKey)) {
-                            queue.push(newChain);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Optimized DFS algorithm for finding all possible chains to dead words
-     * @private
-     */
-    _findAllChainsToEndDFS(startWord, chains, chainStrings, maxChains, maxLength) {
-        const visited = new Set();
-        const deadWordCache = new Map();
-        const nextWordsCache = new Map();
-        
-        this._dfsRecursive(startWord, [startWord], chains, chainStrings, maxChains, maxLength, visited, deadWordCache, nextWordsCache);
-    }
-
-    /**
-     * Recursive DFS helper with optimizations
-     * @private
-     */
-    _dfsRecursive(currentWord, currentChain, chains, chainStrings, maxChains, maxLength, visited, deadWordCache, nextWordsCache) {
-        // Stop if we've found enough chains or exceeded max length
-        if (chains.length >= maxChains || currentChain.length > maxLength) {
-            return;
-        }
-
-        // Use cached dead word status
-        let isDeadWord = false;
-        if (deadWordCache.has(currentWord)) {
-            isDeadWord = deadWordCache.get(currentWord);
-        } else {
-            const nextWordsData = this._getCachedNextWords(currentWord, nextWordsCache);
-            isDeadWord = nextWordsData.length === 0;
-            deadWordCache.set(currentWord, isDeadWord);
-        }
-
-        if (isDeadWord && currentChain.length >= 2) {
-            // Found a dead word - save chain if valid
-            const chainKey = currentChain.join('|');
-            if (!chainStrings.has(chainKey)) {
-                chains.push([...currentChain]);
-                chainStrings.add(chainKey);
-            }
-            return;
-        }
-
-        if (!isDeadWord && currentChain.length < maxLength) {
-            // Continue exploring - get next words
-            const nextWordsData = this._getCachedNextWords(currentWord, nextWordsCache);
-            
-            // Limit branching factor for DFS performance
-            const wordsToTry = nextWordsData.slice(0, Math.min(5, nextWordsData.length));
-            
-            for (const nextWord of wordsToTry) {
-                // Avoid cycles and already visited paths
-                const pathKey = `${nextWord}_${currentChain.length + 1}`;
-                if (!currentChain.includes(nextWord) && !visited.has(pathKey)) {
-                    visited.add(pathKey);
-                    this._dfsRecursive(nextWord, [...currentChain, nextWord], chains, chainStrings, maxChains, maxLength, visited, deadWordCache, nextWordsCache);
-                    visited.delete(pathKey); // Backtrack
-                }
-            }
-        }
-    }
-
-    /**
-     * Cached helper for getting next words efficiently
-     * @private
-     */
-    _getCachedNextWords(word, cache) {
-        if (cache.has(word)) {
-            return cache.get(word);
-        }
-        
-        const nextWords = this.findNextWords(word, false, true);
-        cache.set(word, nextWords);
-        return nextWords;
     }
 
     /**
