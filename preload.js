@@ -11,6 +11,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     validateChain: (chain) => ipcRenderer.invoke('validate-chain', chain),
     generateWordChains: (word, maxChains, maxLength) => ipcRenderer.invoke('generate-word-chains', word, maxChains, maxLength),
     findChainsToDeadWords: (word, maxChains, maxLength) => ipcRenderer.invoke('find-chains-to-dead-words', word, maxChains, maxLength),
+    hasWord: (word) => ipcRenderer.invoke('has-word', word),
     getStats: () => ipcRenderer.invoke('get-stats'),
     addWords: (words) => ipcRenderer.invoke('add-words', words),
     removeWords: (words) => ipcRenderer.invoke('remove-words', words),
