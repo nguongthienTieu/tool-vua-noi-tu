@@ -68,7 +68,7 @@ class WordChainHelper {
      */
     isValidCompoundWord(word) {
         const syllables = this.extractSyllables(word);
-        return syllables.length >= 2; // Từ ghép tiếng Việt có ít nhất 2 âm tiết
+        return syllables.length === 2; // Chỉ chấp nhận từ ghép tiếng Việt có đúng 2 âm tiết
     }
     
     /**
@@ -329,6 +329,94 @@ class WordChainHelper {
         processedChains.sort((a, b) => a.length - b.length);
         
         return processedChains.slice(0, maxChains);
+    }
+
+    /**
+     * Find chains that lead to dead words (game-ending chains)
+     * @param {string} startWord - The starting word for the chains
+     * @param {number} maxChains - Maximum number of chains to find (default: 5, range 3-5)
+     * @param {number} maxLength - Maximum length of each chain (default: 10)
+     * @returns {Array} Array of chain objects that lead to dead words, sorted by length
+     */
+    findChainsToDeadWords(startWord, maxChains = 5, maxLength = 10) {
+        if (!startWord || typeof startWord !== 'string') {
+            return [];
+        }
+
+        // Ensure maxChains is between 3-5 as per requirements
+        maxChains = Math.max(3, Math.min(5, maxChains));
+
+        const chains = [];
+        const chainStrings = new Set(); // To avoid duplicate chains
+        
+        // Use BFS to find chains that end with dead words
+        this._findChainsToDeadWordsIterative(startWord, chains, chainStrings, maxChains, maxLength);
+        
+        // Process chains to add metadata
+        const processedChains = chains.map(chain => {
+            const lastWord = chain[chain.length - 1];
+            const canContinue = this.hasNextWords(lastWord);
+            
+            return {
+                chain: [...chain],
+                length: chain.length,
+                canContinue: canContinue,
+                isGameEnding: !canContinue, // Should be true for our purpose
+                lastWord: lastWord
+            };
+        });
+
+        // Filter only chains that end with dead words (game ending)
+        const gameEndingChains = processedChains.filter(chain => chain.isGameEnding);
+
+        // Sort by length (shortest to longest) as requested
+        gameEndingChains.sort((a, b) => a.length - b.length);
+        
+        return gameEndingChains.slice(0, maxChains);
+    }
+
+    /**
+     * Helper method for finding chains to dead words iteratively
+     * @private
+     */
+    _findChainsToDeadWordsIterative(startWord, chains, chainStrings, maxChains, maxLength) {
+        const queue = [[startWord]]; // Queue of current chains
+        let processedCount = 0;
+        const maxProcessed = 2000; // Increased limit to find more dead word chains
+        
+        while (queue.length > 0 && chains.length < maxChains && processedCount < maxProcessed) {
+            const currentChain = queue.shift();
+            processedCount++;
+            
+            if (currentChain.length > maxLength) {
+                continue;
+            }
+            
+            const currentWord = currentChain[currentChain.length - 1];
+            const nextWordsData = this.findNextWords(currentWord, false, true); // Get simple array
+            
+            if (nextWordsData.length === 0) {
+                // This is a dead word - save the chain if it's meaningful
+                if (currentChain.length >= 2) {
+                    const chainKey = currentChain.join('|');
+                    if (!chainStrings.has(chainKey)) {
+                        chains.push([...currentChain]);
+                        chainStrings.add(chainKey);
+                    }
+                }
+            } else if (currentChain.length < maxLength) {
+                // Continue building chains - only explore if we haven't reached max length
+                const wordsToTry = nextWordsData.slice(0, Math.min(4, nextWordsData.length));
+                for (const nextWord of wordsToTry) {
+                    const newChain = [...currentChain, nextWord];
+                    const newChainKey = newChain.join('|');
+                    
+                    if (!chainStrings.has(newChainKey) && newChain.length <= maxLength) {
+                        queue.push(newChain);
+                    }
+                }
+            }
+        }
     }
 
     /**
