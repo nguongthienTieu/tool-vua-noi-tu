@@ -81,6 +81,10 @@ class ElectronWordChainApp {
             return this.wordChainHelper.findChainsToDeadWords(word, maxChains, maxLength);
         });
 
+        ipcMain.handle('has-word', async (event, word) => {
+            return this.wordChainHelper.hasWord(word);
+        });
+
         ipcMain.handle('get-stats', async (event) => {
             return this.wordChainHelper.getStats();
         });

@@ -343,8 +343,15 @@ class WordChainApp {
             return;
         }
 
-        if (maxChains < 3 || maxChains > 5) {
-            this.showResult(chainsResult, 'Số chuỗi phải từ 3 đến 5', 'error');
+        // Validate that the input word exists in the dictionary
+        const wordExists = await window.electronAPI.hasWord(word);
+        if (!wordExists) {
+            this.showResult(chainsResult, `❌ Từ "${word}" không có trong từ điển. Vui lòng nhập từ hợp lệ.`, 'error');
+            return;
+        }
+
+        if (maxChains < 1 || maxChains > 5) {
+            this.showResult(chainsResult, 'Số chuỗi phải từ 1 đến 5', 'error');
             return;
         }
 
