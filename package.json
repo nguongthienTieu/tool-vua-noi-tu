@@ -10,6 +10,7 @@
     "start": "node cli.js",
     "example": "node index.js",
     "examples": "node examples.js",
+    "vietnamese": "node vietnamese-examples.js",
     "test": "node index.js && echo 'Basic functionality test passed!'"
   },
   "keywords": [
