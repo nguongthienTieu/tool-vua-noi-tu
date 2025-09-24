@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
 /**
- * Word Chain Helper CLI
- * Command-line interface for the word chain helper
- * Supports both English and Vietnamese (Từ ghép tiếng Việt)
+ * Trợ giúp Từ Ghép Tiếng Việt - CLI
+ * Giao diện dòng lệnh cho công cụ trợ giúp từ ghép tiếng Việt
+ * Sử dụng nguồn từ điển từ @undertheseanlp/dictionary
  */
 
 const WordChainHelper = require('./index.js');
@@ -11,7 +11,7 @@ const readline = require('readline');
 
 class WordChainCLI {
     constructor() {
-        this.helper = new WordChainHelper('vietnamese'); // Default to Vietnamese
+        this.helper = new WordChainHelper(); // Chỉ hỗ trợ tiếng Việt
         this.rl = readline.createInterface({
             input: process.stdin,
             output: process.stdout
@@ -19,35 +19,33 @@ class WordChainCLI {
     }
 
     showHelp() {
-        const isVietnamese = this.helper.getLanguage() === 'vietnamese' || this.helper.getLanguage() === 'tiếng việt';
-        
-        if (isVietnamese) {
-            console.log(`
-Trợ giúp Từ Ghép Tiếng Việt
-===========================
+        console.log(`
+Trợ giúp Từ Ghép Tiếng Việt (@undertheseanlp/dictionary)
+=======================================================
 
 Lệnh có sẵn:
   them <từ1> [từ2] [từ3] ...       - Thêm từ vào cơ sở dữ liệu
-  add <word1> [word2] [word3] ...   - Thêm từ vào cơ sở dữ liệu (tiếng Anh)
-  noi <từ1> <từ2>                  - Kiểm tra hai từ có nối được không
-  chain <word1> <word2>            - Kiểm tra hai từ có nối được không (tiếng Anh)
+  noi <từ1> <từ2>                  - Kiểm tra hai từ có nối được không  
   tieptheo <từ>                    - Tìm từ có thể theo sau từ đã cho
-  next <word>                      - Tìm từ có thể theo sau từ đã cho (tiếng Anh)  
   truoc <từ>                       - Tìm từ có thể đứng trước từ đã cho
-  prev <word>                      - Tìm từ có thể đứng trước từ đã cho (tiếng Anh)
   kiemtra <từ1> <từ2> ...          - Kiểm tra chuỗi từ có hợp lệ không
-  validate <word1> <word2> ...     - Kiểm tra chuỗi từ có hợp lệ không (tiếng Anh)
   thongke                          - Hiển thị thống kê cơ sở dữ liệu
-  stats                           - Hiển thị thống kê cơ sở dữ liệu (tiếng Anh)
   tatca                           - Hiển thị tất cả từ trong cơ sở dữ liệu
-  words                           - Hiển thị tất cả từ trong cơ sở dữ liệu (tiếng Anh)
   xoa                             - Xóa tất cả từ khỏi cơ sở dữ liệu
-  clear                           - Xóa tất cả từ khỏi cơ sở dữ liệu (tiếng Anh)
   tuchết                          - Hiển thị các từ "chết" (không thể tiếp tục)
-  dead                            - Hiển thị các từ "chết" (tiếng Anh)
   xoatu <từ1> [từ2] ...           - Xóa từ khỏi cơ sở dữ liệu
-  remove <word1> [word2] ...       - Xóa từ khỏi cơ sở dữ liệu (tiếng Anh)
   capnhat <từ_cũ> <từ_mới>        - Cập nhật từ trong cơ sở dữ liệu
+  lichsu                          - Hiển thị lịch sử sử dụng từ
+  trogiup                         - Hiển thị trợ giúp
+  thoat                           - Thoát chương trình
+
+Ví dụ:
+  them "hoa mai"                  - Thêm từ "hoa mai"
+  noi "hoa mai" "mai vàng"        - Kiểm tra nối từ
+  tieptheo "bánh mì"             - Tìm từ theo sau "bánh mì"
+  kiemtra "bánh mì" "mì quảng" "quảng nam" - Kiểm tra chuỗi từ
+        `);
+    }
   update <old_word> <new_word>     - Cập nhật từ trong cơ sở dữ liệu (tiếng Anh)
   ngonngu <vietnamese/english>     - Thay đổi ngôn ngữ
   language <vietnamese/english>    - Thay đổi ngôn ngữ (tiếng Anh)
@@ -100,75 +98,50 @@ Example:
         const args = parts.slice(1);
 
         switch (command) {
-            case 'add':
             case 'them':
                 if (args.length === 0) {
-                    const isVietnamese = this.helper.getLanguage() === 'vietnamese';
-                    console.log(isVietnamese ? 'Cách dùng: them <từ1> [từ2] [từ3] ...' : 'Usage: add <word1> [word2] [word3] ...');
+                    console.log('Cách dùng: them <từ1> [từ2] [từ3] ...');
                     break;
                 }
-                this.helper.addWords(args, true); // Mark as user-added
-                const isVietnamese = this.helper.getLanguage() === 'vietnamese';
-                console.log(isVietnamese ? 
-                    `Đã thêm ${args.length} từ: ${args.join(', ')}` : 
-                    `Added ${args.length} word(s): ${args.join(', ')}`);
+                this.helper.addWords(args, true); // Đánh dấu là từ do người dùng thêm
+                console.log(`Đã thêm ${args.length} từ: ${args.join(', ')}`);
                 break;
 
-            case 'chain':
             case 'noi':
                 if (args.length !== 2) {
-                    const isVietnamese = this.helper.getLanguage() === 'vietnamese';
-                    console.log(isVietnamese ? 'Cách dùng: noi <từ1> <từ2>' : 'Usage: chain <word1> <word2>');
+                    console.log('Cách dùng: noi <từ1> <từ2>');
                     break;
                 }
                 const canChain = this.helper.canChain(args[0], args[1]);
-                const isVietnamese1 = this.helper.getLanguage() === 'vietnamese';
-                console.log(isVietnamese1 ? 
-                    `"${args[0]}" ${canChain ? 'CÓ THỂ' : 'KHÔNG THỂ'} nối với "${args[1]}"` :
-                    `"${args[0]}" ${canChain ? 'CAN' : 'CANNOT'} chain to "${args[1]}"`);
+                console.log(`"${args[0]}" ${canChain ? 'CÓ THỂ' : 'KHÔNG THỂ'} nối với "${args[1]}"`);
                 break;
 
-            case 'next':
             case 'tieptheo':
                 if (args.length !== 1) {
-                    const isVietnamese = this.helper.getLanguage() === 'vietnamese';
-                    console.log(isVietnamese ? 'Cách dùng: tieptheo <từ>' : 'Usage: next <word>');
+                    console.log('Cách dùng: tieptheo <từ>');
                     break;
                 }
                 const nextWords = this.helper.findNextWords(args[0]);
-                const isVietnamese2 = this.helper.getLanguage() === 'vietnamese';
                 if (nextWords.length === 0) {
-                    console.log(isVietnamese2 ? 
-                        `Không tìm thấy từ nào có thể theo sau "${args[0]}"` :
-                        `No words found that can follow "${args[0]}"`);
+                    console.log(`Không tìm thấy từ nào có thể theo sau "${args[0]}"`);
                 } else {
-                    console.log(isVietnamese2 ? 
-                        `Từ có thể theo sau "${args[0]}": ${nextWords.join(', ')}` :
-                        `Words that can follow "${args[0]}": ${nextWords.join(', ')}`);
+                    console.log(`Từ có thể theo sau "${args[0]}": ${nextWords.join(', ')}`);
                 }
                 break;
 
-            case 'prev':
             case 'truoc':
                 if (args.length !== 1) {
-                    const isVietnamese = this.helper.getLanguage() === 'vietnamese';
-                    console.log(isVietnamese ? 'Cách dùng: truoc <từ>' : 'Usage: prev <word>');
+                    console.log('Cách dùng: truoc <từ>');
                     break;
                 }
                 const prevWords = this.helper.findPreviousWords(args[0]);
-                const isVietnamese3 = this.helper.getLanguage() === 'vietnamese';
                 if (prevWords.length === 0) {
-                    console.log(isVietnamese3 ? 
-                        `Không tìm thấy từ nào có thể đứng trước "${args[0]}"` :
-                        `No words found that can come before "${args[0]}"`);
+                    console.log(`Không tìm thấy từ nào có thể đứng trước "${args[0]}"`);
                 } else {
-                    console.log(isVietnamese3 ? 
-                        `Từ có thể đứng trước "${args[0]}": ${prevWords.join(', ')}` :
-                        `Words that can come before "${args[0]}": ${prevWords.join(', ')}`);
+                    console.log(`Từ có thể đứng trước "${args[0]}": ${prevWords.join(', ')}`);
                 }
                 break;
 
-            case 'validate':
             case 'kiemtra':
                 if (args.length < 2) {
                     const isVietnamese = this.helper.getLanguage() === 'vietnamese';
@@ -337,24 +310,13 @@ Example:
     }
 
     start() {
-        const isVietnamese = this.helper.getLanguage() === 'vietnamese' || this.helper.getLanguage() === 'tiếng việt';
+        console.log('Trợ giúp Từ Ghép Tiếng Việt - CLI (@undertheseanlp/dictionary)');
+        console.log('=================================================================');
+        console.log('Gõ "trogiup" để xem các lệnh có sẵn hoặc "thoat" để thoát.\n');
         
-        if (isVietnamese) {
-            console.log('Trợ giúp Từ Ghép Tiếng Việt - CLI');
-            console.log('Gõ "trogiup" để xem các lệnh có sẵn hoặc "thoat" để thoát.\n');
-            
-            const stats = this.helper.getStats();
-            console.log(`Đã tải ${stats.totalWords} từ ghép tiếng Việt từ từ điển.\n`);
-            console.log('Một số từ mẫu:', this.helper.getAllWords().slice(0, 8).join(', '), '\n');
-        } else {
-            console.log('Word Chain Helper CLI');
-            console.log('Type "help" for available commands or "quit" to exit.\n');
-            
-            // Add some default words for English
-            const defaultWords = ['apple', 'elephant', 'tiger', 'rabbit', 'tree', 'eagle', 'lemon', 'orange'];
-            this.helper.addWords(defaultWords);
-            console.log(`Loaded ${defaultWords.length} default words: ${defaultWords.join(', ')}\n`);
-        }
+        const stats = this.helper.getStats();
+        console.log(`Đã tải ${stats.totalWords} từ ghép tiếng Việt từ @undertheseanlp/dictionary.\n`);
+        console.log('Một số từ mẫu:', this.helper.getAllWords().slice(0, 8).join(', '), '\n');
 
         const askQuestion = () => {
             this.rl.question('> ', (input) => {
