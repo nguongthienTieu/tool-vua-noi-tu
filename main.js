@@ -58,7 +58,11 @@ class ElectronWordChainApp {
         });
 
         ipcMain.handle('find-next-words', async (event, word) => {
-            return this.wordChainHelper.findNextWords(word);
+            return this.wordChainHelper.findNextWords(word, true, true); // Return simple array for backward compatibility
+        });
+
+        ipcMain.handle('find-next-words-enhanced', async (event, word) => {
+            return this.wordChainHelper.findNextWords(word, true, false); // Return enhanced format with dead word info
         });
 
         ipcMain.handle('find-previous-words', async (event, word) => {
@@ -69,6 +73,10 @@ class ElectronWordChainApp {
             return this.wordChainHelper.validateChain(chain);
         });
 
+        ipcMain.handle('generate-word-chains', async (event, word, maxChains, maxLength) => {
+            return this.wordChainHelper.generateWordChains(word, maxChains, maxLength);
+        });
+
         ipcMain.handle('get-stats', async (event) => {
             return this.wordChainHelper.getStats();
         });
@@ -76,6 +84,15 @@ class ElectronWordChainApp {
         ipcMain.handle('add-words', async (event, words) => {
             this.wordChainHelper.addWords(words, true);
             return true;
+        });
+
+        ipcMain.handle('remove-words', async (event, words) => {
+            this.wordChainHelper.removeWords(words);
+            return true;
+        });
+
+        ipcMain.handle('get-user-words', async (event) => {
+            return this.wordChainHelper.getUserWords();
         });
 
         ipcMain.handle('get-random-words', async (event, count = 10) => {

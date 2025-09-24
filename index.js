@@ -134,22 +134,37 @@ class WordChainHelper {
     }
 
     /**
-     * Tìm tất cả từ có thể theo sau từ đã cho
+     * Tìm tất cả từ có thể theo sau từ đã cho (backward compatible version)
      * @param {string} word - Từ hiện tại
-     * @returns {string[]} Mảng các từ có thể theo sau
+     * @param {boolean} prioritizeDeadWords - Ưu tiên từ "chết" lên đầu
+     * @param {boolean} returnSimpleArray - Trả về mảng đơn giản thay vì objects với metadata
+     * @returns {Array} Mảng các từ có thể theo sau
      */
-    findNextWords(word) {
+    findNextWords(word, prioritizeDeadWords = true, returnSimpleArray = false) {
         if (!word || typeof word !== 'string') {
             return [];
         }
 
         const lastElement = this.getConnectingElement(word, true);
         const nextWords = [];
+        const deadWords = [];
 
         this.words.forEach(candidateWord => {
             const firstElement = this.getConnectingElement(candidateWord, false);
             if (firstElement === lastElement && candidateWord !== word.toLowerCase().trim()) {
-                nextWords.push(candidateWord);
+                // Check if this word is a dead word (has no next words)
+                const hasNextWords = this.hasNextWords(candidateWord);
+                
+                const wordInfo = {
+                    word: candidateWord,
+                    isDead: !hasNextWords
+                };
+                
+                if (!hasNextWords) {
+                    deadWords.push(wordInfo);
+                } else {
+                    nextWords.push(wordInfo);
+                }
                 
                 // Track usage history
                 if (!this.wordHistory.has(candidateWord)) {
@@ -159,7 +174,47 @@ class WordChainHelper {
             }
         });
 
-        return nextWords.sort();
+        // Sort both arrays alphabetically
+        nextWords.sort((a, b) => a.word.localeCompare(b.word));
+        deadWords.sort((a, b) => a.word.localeCompare(b.word));
+
+        let result;
+        // Return dead words first if prioritizeDeadWords is true
+        if (prioritizeDeadWords) {
+            result = [...deadWords, ...nextWords];
+        } else {
+            result = [...nextWords, ...deadWords];
+        }
+
+        // Return simple array for backward compatibility if requested
+        if (returnSimpleArray) {
+            return result.map(item => item.word);
+        }
+        
+        return result;
+    }
+
+    /**
+     * Check if a word has any next words (not a dead word)
+     * @param {string} word - The word to check
+     * @returns {boolean} True if the word has next words
+     */
+    hasNextWords(word) {
+        if (!word || typeof word !== 'string') {
+            return false;
+        }
+
+        const lastElement = this.getConnectingElement(word, true);
+        
+        // Use for...of to enable early return for better performance
+        for (const candidateWord of this.words) {
+            const firstElement = this.getConnectingElement(candidateWord, false);
+            if (firstElement === lastElement && candidateWord !== word.toLowerCase().trim()) {
+                return true; // Found at least one next word
+            }
+        }
+        
+        return false; // No next words found - this is a dead word
     }
 
     /**
@@ -183,6 +238,97 @@ class WordChainHelper {
         });
 
         return previousWords.sort();
+    }
+
+    /**
+     * Generate multiple word chains from a starting word
+     * @param {string} startWord - The starting word for the chains
+     * @param {number} maxChains - Maximum number of chains to generate (default: 4)
+     * @param {number} maxLength - Maximum length of each chain (default: 10)
+     * @returns {Array} Array of chain objects with metadata
+     */
+    generateWordChains(startWord, maxChains = 4, maxLength = 10) {
+        if (!startWord || typeof startWord !== 'string') {
+            return [];
+        }
+
+        const chains = [];
+        const chainStrings = new Set(); // To avoid duplicate chains
+        
+        // Start with the initial word
+        this._generateChainsIterative(startWord, chains, chainStrings, maxChains, maxLength);
+        
+        // Process chains to add metadata
+        const processedChains = chains.map(chain => {
+            const lastWord = chain[chain.length - 1];
+            const canContinue = this.hasNextWords(lastWord);
+            
+            return {
+                chain: [...chain],
+                length: chain.length,
+                canContinue: canContinue,
+                isGameEnding: !canContinue, // Chain ends the game if last word can't continue
+                lastWord: lastWord
+            };
+        });
+
+        // Sort by length (shortest to longest) as requested
+        processedChains.sort((a, b) => a.length - b.length);
+        
+        return processedChains.slice(0, maxChains);
+    }
+
+    /**
+     * Helper method for generating chains iteratively (more efficient than recursion)
+     * @private
+     */
+    _generateChainsIterative(startWord, chains, chainStrings, maxChains, maxLength) {
+        const queue = [[startWord]]; // Queue of current chains
+        let processedCount = 0;
+        const maxProcessed = 1000; // Limit processing to avoid infinite loops
+        
+        while (queue.length > 0 && chains.length < maxChains && processedCount < maxProcessed) {
+            const currentChain = queue.shift();
+            processedCount++;
+            
+            if (currentChain.length >= maxLength) {
+                continue;
+            }
+            
+            const currentWord = currentChain[currentChain.length - 1];
+            const nextWordsData = this.findNextWords(currentWord, false, true); // Get simple array
+            
+            if (nextWordsData.length === 0) {
+                // This is a dead end, save the chain if it's meaningful
+                if (currentChain.length >= 2) {
+                    const chainKey = currentChain.join('|');
+                    if (!chainStrings.has(chainKey)) {
+                        chains.push([...currentChain]);
+                        chainStrings.add(chainKey);
+                    }
+                }
+            } else {
+                // Save current chain if it's meaningful
+                if (currentChain.length >= 2) {
+                    const chainKey = currentChain.join('|');
+                    if (!chainStrings.has(chainKey) && chains.length < maxChains) {
+                        chains.push([...currentChain]);
+                        chainStrings.add(chainKey);
+                    }
+                }
+                
+                // Add extended chains to queue (limit to first few options for efficiency)
+                const wordsToTry = nextWordsData.slice(0, Math.min(3, nextWordsData.length));
+                for (const nextWord of wordsToTry) {
+                    const newChain = [...currentChain, nextWord];
+                    const newChainKey = newChain.join('|');
+                    
+                    if (!chainStrings.has(newChainKey) && newChain.length <= maxLength) {
+                        queue.push(newChain);
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -218,7 +364,7 @@ class WordChainHelper {
         this.deadWords.clear();
         
         this.words.forEach(word => {
-            const nextWords = this.findNextWords(word);
+            const nextWords = this.findNextWords(word, false, true); // Get simple array
             if (nextWords.length === 0) {
                 this.deadWords.add(word);
             }
@@ -364,8 +510,8 @@ if (require.main === module) {
     console.log('Có thể nối "hoa đào" với "đào tạo" không?', vietnameseHelper.canChain('hoa đào', 'đào tạo'));
     
     console.log('\nTìm từ có thể theo sau:');
-    console.log('Từ có thể theo sau "con voi":', vietnameseHelper.findNextWords('con voi').slice(0, 5));
-    console.log('Từ có thể theo sau "bánh mì":', vietnameseHelper.findNextWords('bánh mì').slice(0, 5));
+    console.log('Từ có thể theo sau "con voi":', vietnameseHelper.findNextWords('con voi', true, true).slice(0, 5));
+    console.log('Từ có thể theo sau "bánh mì":', vietnameseHelper.findNextWords('bánh mì', true, true).slice(0, 5));
     
     console.log('\nTìm từ có thể đứng trước:');
     console.log('Từ có thể đứng trước "mì quảng":', vietnameseHelper.findPreviousWords('mì quảng').slice(0, 5));

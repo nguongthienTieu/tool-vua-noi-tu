@@ -272,6 +272,8 @@ body {
 }
 
 .word-item {
+    display: inline-flex;
+    align-items: center;
     background: #667eea;
     color: white;
     padding: 2px 6px;
@@ -283,6 +285,128 @@ body {
 
 .word-item:hover {
     background: #5a67d8;
+}
+
+.word-item.dead-word {
+    background: #ffc107;
+    color: #212529;
+}
+
+.word-item.dead-word::after {
+    content: " 💀";
+    font-size: 9px;
+    margin-left: 2px;
+}
+
+.word-item.live-word {
+    background: #28a745;
+    color: white;
+}
+
+/* Settings group styles */
+.settings-group {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+.setting-item {
+    display: flex;
+    flex-direction: column;
+    min-width: 120px;
+}
+
+.setting-item label {
+    font-size: 11px;
+    color: #666;
+    margin-bottom: 4px;
+}
+
+.setting-item input[type="number"] {
+    padding: 6px 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 12px;
+    width: 80px;
+}
+
+/* Chain result styles */
+.chain-result-item {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 10px;
+}
+
+.chain-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.chain-info {
+    font-size: 11px;
+    color: #666;
+}
+
+.chain-status {
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 12px;
+    font-weight: bold;
+}
+
+.chain-status.can-continue {
+    background: #d4edda;
+    color: #155724;
+}
+
+.chain-status.game-ending {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.chain-words {
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    color: #333;
+    background: white;
+    padding: 8px;
+    border-radius: 4px;
+    border-left: 3px solid #667eea;
+}
+
+/* User words management */
+.user-words-section {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #ddd;
+}
+
+.user-words-section h3 {
+    font-size: 12px;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.user-words-list {
+    max-height: 100px;
+    overflow-y: auto;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 8px;
+}
+
+.secondary {
+    background: #6c757d !important;
+}
+
+.secondary:hover {
+    background: #5a6268 !important;
 }
 
 /* Chain validation styles */
