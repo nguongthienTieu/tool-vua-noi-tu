@@ -209,7 +209,7 @@ class WordChainApp {
                 
                 // Show dead words count if any
                 const deadCount = words.filter(item => item.isDead).length;
-                const deadInfo = deadCount > 0 ? `<p style="margin: 4px 0; font-size: 11px; color: #856404;">💀 ${deadCount} từ "chết" (có thể kết thúc trò chơi)</p>` : '';
+                const deadInfo = deadCount > 0 ? `<p style="margin: 4px 0; font-size: 11px; color: #856404;">💀 ${deadCount} từ "kết thúc" (có thể kết thúc trò chơi)</p>` : '';
                 
                 this.showResult(findResult, `<p style="margin-bottom: 8px;">${title}</p>${deadInfo}${wordList}${moreText}`, 'success');
             } else {
@@ -353,7 +353,7 @@ class WordChainApp {
             return;
         }
 
-        this.showResult(chainsResult, '⏳ Đang tìm chuỗi từ dẫn đến từ chết...', 'info');
+        this.showResult(chainsResult, '⏳ Đang tìm chuỗi từ dẫn đến kết thúc...', 'info');
 
         try {
             const chains = await window.electronAPI.findChainsToDeadWords(word, maxChains, maxLength);
@@ -362,12 +362,12 @@ class WordChainApp {
                 const chainsHtml = this.createChainsDisplay(chains);
                 const gameEndingCount = chains.filter(chain => chain.isGameEnding).length;
                 
-                const summary = `<p style="margin-bottom: 15px;">✅ Tìm được ${chains.length} chuỗi từ "${word}" dẫn đến từ chết:<br>` +
-                              `💀 ${gameEndingCount} chuỗi kết thúc game (tất cả chuỗi đều dẫn đến từ chết)</p>`;
+                const summary = `<p style="margin-bottom: 15px;">✅ Tìm được ${chains.length} chuỗi từ "${word}" dẫn đến kết thúc:<br>` +
+                              `💀 ${gameEndingCount} chuỗi kết thúc game (tất cả chuỗi đều dẫn đến kết thúc)</p>`;
                 
                 this.showResult(chainsResult, summary + chainsHtml, 'success');
             } else {
-                this.showResult(chainsResult, `❌ Không tìm thấy chuỗi từ "${word}" dẫn đến từ chết (có thể từ này đã là từ chết hoặc không có đường đi)`, 'info');
+                this.showResult(chainsResult, `❌ Không tìm thấy chuỗi từ "${word}" dẫn đến kết thúc (có thể từ này đã là kết thúc hoặc không có đường đi)`, 'info');
             }
         } catch (error) {
             this.showResult(chainsResult, 'Lỗi khi tìm chuỗi từ', 'error');
@@ -377,7 +377,7 @@ class WordChainApp {
     createEnhancedWordList(wordsData) {
         return `<div class="word-list">${wordsData.map(item => {
             const wordClass = item.isDead ? 'word-item dead-word' : 'word-item live-word';
-            const title = item.isDead ? 'Từ "chết" - có thể kết thúc trò chơi. Nhấp để sao chép.' : 'Từ "sống" - có thể tiếp tục. Nhấp để sao chép.';
+            const title = item.isDead ? 'Từ "kết thúc" - có thể kết thúc trò chơi. Nhấp để sao chép.' : 'Từ "sống" - có thể tiếp tục. Nhấp để sao chép.';
             return `<span class="${wordClass}" title="${title}">${item.word}</span>`;
         }).join('')}</div>`;
     }

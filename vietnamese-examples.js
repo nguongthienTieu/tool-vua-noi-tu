@@ -79,15 +79,15 @@ const longestChain = findLongestVietnameseChain('bánh mì');
 console.log('Chuỗi dài nhất bắt đầu từ "bánh mì":', longestChain.join(' → '));
 console.log('Độ dài chuỗi:', longestChain.length);
 
-// Ví dụ 5: Phân tích từ "chết"
+// Ví dụ 5: Phân tích từ "kết thúc"
 console.log('\n5. Phân tích Từ "Chết":');
 console.log('-----------------------');
 const stats = helper.getStats();
 console.log('Tổng số từ trong cơ sở dữ liệu:', stats.totalWords);
-console.log('Số từ "chết" (không thể tiếp tục):', stats.deadWords);
+console.log('Số từ "kết thúc" (không thể tiếp tục):', stats.deadWords);
 
 const deadWords = helper.getDeadWords();
-console.log('\nMột số từ "chết":');
+console.log('\nMột số từ "kết thúc":');
 deadWords.slice(0, 10).forEach(word => {
     console.log(`  ${word} (kết thúc bằng: "${helper.getConnectingElement(word, true)}")`);
 });
