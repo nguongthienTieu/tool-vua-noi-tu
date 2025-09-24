@@ -46,51 +46,6 @@ Ví dụ:
   kiemtra "bánh mì" "mì quảng" "quảng nam" - Kiểm tra chuỗi từ
         `);
     }
-  update <old_word> <new_word>     - Cập nhật từ trong cơ sở dữ liệu (tiếng Anh)
-  ngonngu <vietnamese/english>     - Thay đổi ngôn ngữ
-  language <vietnamese/english>    - Thay đổi ngôn ngữ (tiếng Anh)
-  lichsu                          - Hiển thị lịch sử sử dụng từ
-  history                         - Hiển thị lịch sử sử dụng từ (tiếng Anh)
-  trogiup                         - Hiển thị thông báo trợ giúp này
-  help                            - Hiển thị thông báo trợ giúp này (tiếng Anh)
-  thoat/quit/exit                 - Thoát chương trình
-
-Ví dụ:
-  them bánh mì mì quảng quảng nam
-  noi bánh mì mì quảng
-  tieptheo bánh mì
-  kiemtra bánh mì mì quảng quảng nam
-            `);
-        } else {
-            console.log(`
-Word Chain Helper CLI
-=====================
-
-Commands:
-  add <word1> [word2] [word3] ...  - Add words to the database
-  chain <word1> <word2>            - Check if two words can be chained
-  next <word>                      - Find words that can follow the given word
-  prev <word>                      - Find words that can come before the given word
-  validate <word1> <word2> ...     - Validate a chain of words
-  stats                            - Show database statistics
-  words                            - Show all words in the database
-  clear                           - Clear all words from the database
-  dead                            - Show dead words (words that cannot continue)
-  remove <word1> [word2] ...       - Remove words from the database
-  update <old_word> <new_word>     - Update a word in the database
-  language <vietnamese/english>    - Change language
-  history                         - Show word usage history
-  help                            - Show this help message
-  quit/exit                       - Exit the program
-
-Example:
-  add apple elephant tiger rabbit
-  chain apple elephant
-  next apple
-  validate apple elephant tiger
-            `);
-        }
-    }
 
     processCommand(input) {
         const parts = input.trim().split(' ');
@@ -144,165 +99,115 @@ Example:
 
             case 'kiemtra':
                 if (args.length < 2) {
-                    const isVietnamese = this.helper.getLanguage() === 'vietnamese';
-                    console.log(isVietnamese ? 'Cách dùng: kiemtra <từ1> <từ2> [từ3] ...' : 'Usage: validate <word1> <word2> [word3] ...');
+                    console.log('Cách dùng: kiemtra <từ1> <từ2> [từ3] ...');
                     break;
                 }
                 const isValid = this.helper.validateChain(args);
                 const chainStr = args.join(' → ');
-                const isVietnamese4 = this.helper.getLanguage() === 'vietnamese';
-                console.log(isVietnamese4 ? 
-                    `Chuỗi "${chainStr}" ${isValid ? 'HỢP LỆ' : 'KHÔNG HỢP LỆ'}` :
-                    `Chain "${chainStr}" is ${isValid ? 'VALID' : 'INVALID'}`);
+                console.log(`Chuỗi "${chainStr}" ${isValid ? 'HỢP LỆ' : 'KHÔNG HỢP LỆ'}`);
                 break;
 
-            case 'stats':
             case 'thongke':
                 const stats = this.helper.getStats();
-                const isVietnamese5 = this.helper.getLanguage() === 'vietnamese';
-                console.log(isVietnamese5 ? '\nThống kê Cơ sở dữ liệu:' : '\nDatabase Statistics:');
-                console.log('='.repeat(isVietnamese5 ? 25 : 20));
-                console.log(isVietnamese5 ? 
-                    `Tổng số từ: ${stats.totalWords}` :
-                    `Total words: ${stats.totalWords}`);
-                console.log(isVietnamese5 ? 
-                    `Từ do người dùng thêm: ${stats.userAddedWords}` :
-                    `User-added words: ${stats.userAddedWords}`);
-                console.log(isVietnamese5 ? 
-                    `Từ "chết": ${stats.deadWords}` :
-                    `Dead words: ${stats.deadWords}`);
+                console.log('\nThống kê Cơ sở dữ liệu:');
+                console.log('========================');
+                console.log(`Tổng số từ: ${stats.totalWords}`);
+                console.log(`Từ do người dùng thêm: ${stats.userAddedWords}`);
+                console.log(`Từ "chết": ${stats.deadWords}`);
                 
-                if (stats.totalWords > 0) {
-                    const elementName = isVietnamese5 ? 'âm tiết' : 'letter';
-                    console.log(isVietnamese5 ? `\nPhân bố ${elementName}:` : `\n${elementName} distribution:`);
-                    const elementStats = stats.elementStats || stats.letterStats;
-                    Object.keys(elementStats).sort().forEach(element => {
-                        const stat = elementStats[element];
-                        console.log(`  ${element}: ${stat.starting} ${isVietnamese5 ? 'đầu' : 'starting'}, ${stat.ending} ${isVietnamese5 ? 'cuối' : 'ending'}`);
+                if (stats.totalWords > 0 && stats.syllableStats) {
+                    console.log('\nPhân bố âm tiết:');
+                    const syllableStats = stats.syllableStats;
+                    Object.keys(syllableStats).sort().slice(0, 10).forEach(syllable => {
+                        const stat = syllableStats[syllable];
+                        console.log(`  ${syllable}: ${stat.starting} đầu, ${stat.ending} cuối`);
                     });
+                    if (Object.keys(syllableStats).length > 10) {
+                        console.log(`  ... và ${Object.keys(syllableStats).length - 10} âm tiết khác`);
+                    }
                 }
                 break;
 
-            case 'words':
             case 'tatca':
                 const allWords = this.helper.getAllWords();
-                const isVietnamese6 = this.helper.getLanguage() === 'vietnamese';
                 if (allWords.length === 0) {
-                    console.log(isVietnamese6 ? 
-                        'Không có từ nào trong cơ sở dữ liệu. Dùng lệnh "them" để thêm từ.' :
-                        'No words in the database. Use "add" command to add words.');
+                    console.log('Không có từ nào trong cơ sở dữ liệu. Dùng lệnh "them" để thêm từ.');
                 } else {
-                    console.log(isVietnamese6 ? 
-                        `Tất cả từ (${allWords.length}): ${allWords.join(', ')}` :
-                        `All words (${allWords.length}): ${allWords.join(', ')}`);
+                    // Chỉ hiển thị 20 từ đầu do có quá nhiều từ (25k+)
+                    if (allWords.length > 20) {
+                        console.log(`Tổng số từ: ${allWords.length} từ. Hiển thị 20 từ đầu:`);
+                        console.log(allWords.slice(0, 20).join(', '));
+                        console.log('... (dùng lệnh "tim" để tìm từ cụ thể)');
+                    } else {
+                        console.log(`Tất cả từ (${allWords.length}): ${allWords.join(', ')}`);
+                    }
                 }
                 break;
 
-            case 'clear':
             case 'xoa':
                 this.helper.clear();
-                const isVietnamese7 = this.helper.getLanguage() === 'vietnamese';
-                console.log(isVietnamese7 ? 'Đã xóa cơ sở dữ liệu.' : 'Database cleared.');
+                console.log('Đã xóa cơ sở dữ liệu.');
                 break;
 
-            case 'dead':
             case 'tuchet':
                 const deadWords = this.helper.getDeadWords();
-                const isVietnamese8 = this.helper.getLanguage() === 'vietnamese';
                 if (deadWords.length === 0) {
-                    console.log(isVietnamese8 ? 
-                        'Không có từ "chết" nào.' :
-                        'No dead words found.');
+                    console.log('Không có từ "chết" nào (hoặc chưa tính toán do từ điển lớn).');
                 } else {
-                    console.log(isVietnamese8 ? 
-                        `Từ "chết" (${deadWords.length}): ${deadWords.join(', ')}` :
-                        `Dead words (${deadWords.length}): ${deadWords.join(', ')}`);
+                    console.log(`Từ "chết" (${deadWords.length}): ${deadWords.join(', ')}`);
                 }
                 break;
 
-            case 'remove':
             case 'xoatu':
                 if (args.length === 0) {
-                    const isVietnamese = this.helper.getLanguage() === 'vietnamese';
-                    console.log(isVietnamese ? 'Cách dùng: xoatu <từ1> [từ2] ...' : 'Usage: remove <word1> [word2] ...');
+                    console.log('Cách dùng: xoatu <từ1> [từ2] ...');
                     break;
                 }
                 this.helper.removeWords(args);
-                const isVietnamese9 = this.helper.getLanguage() === 'vietnamese';
-                console.log(isVietnamese9 ? 
-                    `Đã xóa ${args.length} từ: ${args.join(', ')}` :
-                    `Removed ${args.length} word(s): ${args.join(', ')}`);
+                console.log(`Đã xóa ${args.length} từ: ${args.join(', ')}`);
                 break;
 
-            case 'update':
             case 'capnhat':
                 if (args.length !== 2) {
-                    const isVietnamese = this.helper.getLanguage() === 'vietnamese';
-                    console.log(isVietnamese ? 'Cách dùng: capnhat <từ_cũ> <từ_mới>' : 'Usage: update <old_word> <new_word>');
+                    console.log('Cách dùng: capnhat <từ_cũ> <từ_mới>');
                     break;
                 }
                 this.helper.updateWord(args[0], args[1]);
-                const isVietnamese10 = this.helper.getLanguage() === 'vietnamese';
-                console.log(isVietnamese10 ? 
-                    `Đã cập nhật "${args[0]}" thành "${args[1]}"` :
-                    `Updated "${args[0]}" to "${args[1]}"`);
+                console.log(`Đã cập nhật "${args[0]}" thành "${args[1]}"`);
                 break;
 
-            case 'language':
             case 'ngonngu':
-                if (args.length !== 1) {
-                    const isVietnamese = this.helper.getLanguage() === 'vietnamese';
-                    console.log(isVietnamese ? 'Cách dùng: ngonngu <vietnamese/english>' : 'Usage: language <vietnamese/english>');
-                    break;
-                }
-                const newLang = args[0].toLowerCase();
-                if (newLang === 'vietnamese' || newLang === 'tiếng việt' || newLang === 'english') {
-                    this.helper.setLanguage(newLang);
-                    console.log(`Language changed to: ${this.helper.getLanguage()}`);
-                } else {
-                    console.log('Supported languages: vietnamese, english');
-                }
+                console.log('Tool này chỉ hỗ trợ tiếng Việt với từ điển từ @undertheseanlp/dictionary');
                 break;
 
-            case 'history':
             case 'lichsu':
                 const history = this.helper.getWordHistory();
-                const isVietnamese11 = this.helper.getLanguage() === 'vietnamese';
-                console.log(isVietnamese11 ? '\nLịch sử sử dụng từ:' : '\nWord Usage History:');
-                console.log('='.repeat(20));
+                console.log('\nLịch sử sử dụng từ:');
+                console.log('====================');
                 const entries = Object.entries(history);
                 if (entries.length === 0) {
-                    console.log(isVietnamese11 ? 'Chưa có lịch sử sử dụng.' : 'No usage history available.');
+                    console.log('Chưa có lịch sử sử dụng.');
                 } else {
                     entries.sort((a, b) => b[1] - a[1]);
                     entries.slice(0, 10).forEach(([word, count]) => {
-                        console.log(`  ${word}: ${count} ${isVietnamese11 ? 'lần' : 'times'}`);
+                        console.log(`  ${word}: ${count} lần`);
                     });
                 }
                 break;
 
-            case 'help':
             case 'trogiup':
                 this.showHelp();
                 break;
 
-            case 'quit':
-            case 'exit':
             case 'thoat':
-                const isVietnamese12 = this.helper.getLanguage() === 'vietnamese';
-                console.log(isVietnamese12 ? 'Tạm biệt!' : 'Goodbye!');
+                console.log('Tạm biệt!');
                 this.rl.close();
                 return false;
 
             default:
                 if (command) {
-                    const isVietnamese = this.helper.getLanguage() === 'vietnamese';
-                    console.log(isVietnamese ? 
-                        `Lệnh không xác định: ${command}` : 
-                        `Unknown command: ${command}`);
-                    console.log(isVietnamese ? 
-                        'Gõ "trogiup" để xem các lệnh có sẵn.' :
-                        'Type "help" for available commands.');
+                    console.log(`Lệnh không xác định: ${command}`);
+                    console.log('Gõ "trogiup" để xem các lệnh có sẵn.');
                 }
                 break;
         }

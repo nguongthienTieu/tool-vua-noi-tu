@@ -1,7 +1,7 @@
 {
   "name": "word-chain-helper",
-  "version": "1.0.0",
-  "description": "A Node.js utility to help with word chain games where the last letter of one word must match the first letter of the next word.",
+  "version": "2.0.0",
+  "description": "Trợ giúp từ ghép tiếng Việt - Công cụ hỗ trợ trò chơi từ ghép tiếng Việt sử dụng nguồn từ điển từ @undertheseanlp/dictionary với 25,000+ từ ghép tiếng Việt.",
   "main": "index.js",
   "bin": {
     "word-chain-helper": "./cli.js"
@@ -11,14 +11,19 @@
     "example": "node index.js",
     "examples": "node examples.js",
     "vietnamese": "node vietnamese-examples.js",
-    "test": "node index.js && echo 'Basic functionality test passed!'"
+    "test": "node index.js && echo 'Kiểm tra chức năng cơ bản thành công!'"
   },
   "keywords": [
+    "vietnamese",
+    "tieng-viet",
+    "tu-ghep",
     "word-chain",
     "word-game",
     "cli",
     "helper",
-    "utility"
+    "utility",
+    "undertheseanlp",
+    "nlp"
   ],
   "author": "nguongthienTieu",
   "license": "ISC"
