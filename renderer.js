@@ -15,6 +15,17 @@ const getFindNextBtn = () => document.getElementById('findNextBtn');
 const getFindPrevBtn = () => document.getElementById('findPrevBtn');
 const getFindResult = () => document.getElementById('findResult');
 
+// Validate tab elements
+const getValidateWordInput = () => document.getElementById('validateWord');
+const getCheckWordExistBtn = () => document.getElementById('checkWordExistBtn');
+const getCheckValidFormatBtn = () => document.getElementById('checkValidFormatBtn');
+const getValidateWord1Input = () => document.getElementById('validateWord1');
+const getValidateWord2Input = () => document.getElementById('validateWord2');
+const getCheckCanChainBtn = () => document.getElementById('checkCanChainBtn');
+const getValidateChainInput = () => document.getElementById('validateChain');
+const getCheckChainBtn = () => document.getElementById('checkChainBtn');
+const getValidateResult = () => document.getElementById('validateResult');
+
 // Chains generation tab elements
 const getChainsWordInput = () => document.getElementById('chainsWord');
 const getMaxChainsInput = () => document.getElementById('maxChains');
@@ -73,6 +84,49 @@ class WordChainApp {
         if (findWordInput) {
             findWordInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') this.findWords('next');
+            });
+        }
+
+        // Validate functionality
+        const checkWordExistBtn = getCheckWordExistBtn();
+        const checkValidFormatBtn = getCheckValidFormatBtn();
+        const checkCanChainBtn = getCheckCanChainBtn();
+        const checkChainBtn = getCheckChainBtn();
+        const validateWordInput = getValidateWordInput();
+        const validateWord1Input = getValidateWord1Input();
+        const validateWord2Input = getValidateWord2Input();
+        const validateChainInput = getValidateChainInput();
+        
+        if (checkWordExistBtn) {
+            checkWordExistBtn.addEventListener('click', () => this.validateWord('exists'));
+        }
+        if (checkValidFormatBtn) {
+            checkValidFormatBtn.addEventListener('click', () => this.validateWord('format'));
+        }
+        if (checkCanChainBtn) {
+            checkCanChainBtn.addEventListener('click', () => this.validateTwoWords());
+        }
+        if (checkChainBtn) {
+            checkChainBtn.addEventListener('click', () => this.validateWordChain());
+        }
+        if (validateWordInput) {
+            validateWordInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') this.validateWord('exists');
+            });
+        }
+        if (validateWord1Input) {
+            validateWord1Input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') this.validateTwoWords();
+            });
+        }
+        if (validateWord2Input) {
+            validateWord2Input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') this.validateTwoWords();
+            });
+        }
+        if (validateChainInput) {
+            validateChainInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') this.validateWordChain();
             });
         }
 
@@ -427,6 +481,101 @@ class WordChainApp {
         return `<div class="word-list">${words.map(word => 
             `<span class="word-item" title="Nhấp để sao chép">${word}</span>`
         ).join('')}</div>`;
+    }
+
+    async validateWord(type) {
+        const validateWordInput = getValidateWordInput();
+        const validateResult = getValidateResult();
+        
+        if (!validateWordInput || !validateResult) return;
+        
+        const word = validateWordInput.value.trim();
+
+        if (!word) {
+            this.showResult(validateResult, 'Vui lòng nhập từ cần kiểm tra', 'error');
+            return;
+        }
+
+        try {
+            let result;
+            let message;
+            
+            if (type === 'exists') {
+                result = await window.electronAPI.hasWord(word);
+                message = result ? 
+                    `✅ Từ "<strong>${word}</strong>" có trong từ điển` : 
+                    `❌ Từ "<strong>${word}</strong>" không có trong từ điển`;
+            } else if (type === 'format') {
+                result = await window.electronAPI.isValidCompoundWord(word);
+                message = result ? 
+                    `✅ Từ "<strong>${word}</strong>" có định dạng hợp lệ (2 âm tiết)` : 
+                    `❌ Từ "<strong>${word}</strong>" không có định dạng hợp lệ (cần đúng 2 âm tiết)`;
+            }
+            
+            this.showResult(validateResult, message, result ? 'success' : 'error');
+        } catch (error) {
+            this.showResult(validateResult, 'Lỗi khi kiểm tra từ', 'error');
+        }
+    }
+
+    async validateTwoWords() {
+        const validateWord1Input = getValidateWord1Input();
+        const validateWord2Input = getValidateWord2Input();
+        const validateResult = getValidateResult();
+        
+        if (!validateWord1Input || !validateWord2Input || !validateResult) return;
+        
+        const word1 = validateWord1Input.value.trim();
+        const word2 = validateWord2Input.value.trim();
+
+        if (!word1 || !word2) {
+            this.showResult(validateResult, 'Vui lòng nhập cả hai từ để kiểm tra', 'error');
+            return;
+        }
+
+        try {
+            const canChain = await window.electronAPI.canChain(word1, word2);
+            const message = canChain ? 
+                `✅ Có thể nối từ "<strong>${word1}</strong>" với "<strong>${word2}</strong>"` : 
+                `❌ Không thể nối từ "<strong>${word1}</strong>" với "<strong>${word2}</strong>"`;
+            
+            this.showResult(validateResult, message, canChain ? 'success' : 'error');
+        } catch (error) {
+            this.showResult(validateResult, 'Lỗi khi kiểm tra nối từ', 'error');
+        }
+    }
+
+    async validateWordChain() {
+        const validateChainInput = getValidateChainInput();
+        const validateResult = getValidateResult();
+        
+        if (!validateChainInput || !validateResult) return;
+        
+        const chainText = validateChainInput.value.trim();
+
+        if (!chainText) {
+            this.showResult(validateResult, 'Vui lòng nhập chuỗi từ cần kiểm tra', 'error');
+            return;
+        }
+
+        const chain = chainText.split(',').map(word => word.trim()).filter(word => word);
+
+        if (chain.length < 2) {
+            this.showResult(validateResult, 'Chuỗi từ phải có ít nhất 2 từ', 'error');
+            return;
+        }
+
+        try {
+            const isValid = await window.electronAPI.validateChain(chain);
+            const chainDisplay = chain.join(' → ');
+            const message = isValid ? 
+                `✅ Chuỗi từ "<strong>${chainDisplay}</strong>" hợp lệ` : 
+                `❌ Chuỗi từ "<strong>${chainDisplay}</strong>" không hợp lệ`;
+            
+            this.showResult(validateResult, message, isValid ? 'success' : 'error');
+        } catch (error) {
+            this.showResult(validateResult, 'Lỗi khi kiểm tra chuỗi từ', 'error');
+        }
     }
 
     showResult(element, message, type = 'info') {
