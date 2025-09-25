@@ -16,18 +16,6 @@ const getFindNextBtn = () => document.getElementById('findNextBtn');
 const getFindPrevBtn = () => document.getElementById('findPrevBtn');
 const getFindResult = () => document.getElementById('findResult');
 
-// Validate tab elements (simplified)
-const getValidateWordInput = () => document.getElementById('validateWord');
-const getCheckWordExistBtn = () => document.getElementById('checkWordExistBtn');
-const getValidateResult = () => document.getElementById('validateResult');
-
-// Chains generation tab elements
-const getChainsWordInput = () => document.getElementById('chainsWord');
-const getMaxChainsInput = () => document.getElementById('maxChains');
-const getMaxLengthInput = () => document.getElementById('maxLength');
-const getGenerateChainsBtn = () => document.getElementById('generateChainsBtn');
-const getChainsResult = () => document.getElementById('chainsResult');
-
 // Manage words tab elements
 const getNewWordsInput = () => document.getElementById('newWords');
 const getAddWordsBtn = () => document.getElementById('addWordsBtn');
@@ -82,35 +70,10 @@ class WordChainApp {
             });
         }
 
-        // Validate functionality (simplified)
-        const checkWordExistBtn = getCheckWordExistBtn();
-        const validateWordInput = getValidateWordInput();
+        // Language selection
         const languageSelect = getLanguageSelect();
-        
-        if (checkWordExistBtn) {
-            checkWordExistBtn.addEventListener('click', () => this.validateWord('exists'));
-        }
-        if (validateWordInput) {
-            validateWordInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') this.validateWord('exists');
-            });
-        }
         if (languageSelect) {
             languageSelect.addEventListener('change', () => this.changeLanguage());
-        }
-        }
-
-        // Generate chains
-        const generateChainsBtn = getGenerateChainsBtn();
-        const chainsWordInput = getChainsWordInput();
-        
-        if (generateChainsBtn) {
-            generateChainsBtn.addEventListener('click', () => this.generateChains());
-        }
-        if (chainsWordInput) {
-            chainsWordInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') this.generateChains();
-            });
         }
 
         // Manage words
@@ -350,86 +313,6 @@ class WordChainApp {
         }
     }
 
-    async generateChains() {
-        const chainsWordInput = getChainsWordInput();
-        const maxChainsInput = getMaxChainsInput();
-        const maxLengthInput = getMaxLengthInput();
-        const chainsResult = getChainsResult();
-        
-        if (!chainsWordInput || !maxChainsInput || !maxLengthInput || !chainsResult) return;
-        
-        const word = chainsWordInput.value.trim();
-        const maxChains = parseInt(maxChainsInput.value) || 5;
-        const maxLength = parseInt(maxLengthInput.value) || 10;
-
-        if (!word) {
-            this.showResult(chainsResult, 'Vui lòng nhập từ để tìm chuỗi', 'error');
-            return;
-        }
-
-        // Validate that the input word exists in the dictionary
-        const wordExists = await window.electronAPI.hasWord(word);
-        if (!wordExists) {
-            this.showResult(chainsResult, `❌ Từ "${word}" không có trong từ điển. Vui lòng nhập từ hợp lệ.`, 'error');
-            return;
-        }
-
-        if (maxChains < 1 || maxChains > 5) {
-            this.showResult(chainsResult, 'Số chuỗi phải từ 1 đến 5', 'error');
-            return;
-        }
-
-        if (maxLength < 2 || maxLength > 10) {
-            this.showResult(chainsResult, 'Độ dài chuỗi phải từ 2 đến 10', 'error');
-            return;
-        }
-
-        this.showResult(chainsResult, '⏳ Đang tìm chuỗi từ dẫn đến kết thúc...', 'info');
-
-        try {
-            const chains = await window.electronAPI.findChainsToDeadWords(word, maxChains, maxLength);
-
-            if (chains.length > 0) {
-                const chainsHtml = this.createChainsDisplay(chains);
-                const gameEndingCount = chains.filter(chain => chain.isGameEnding).length;
-                
-                const summary = `<p style="margin-bottom: 15px;">✅ Tìm được ${chains.length} chuỗi từ "${word}" dẫn đến kết thúc:<br>` +
-                              `💀 ${gameEndingCount} chuỗi kết thúc game (tất cả chuỗi đều dẫn đến kết thúc)</p>`;
-                
-                this.showResult(chainsResult, summary + chainsHtml, 'success');
-            } else {
-                this.showResult(chainsResult, `❌ Không tìm thấy chuỗi từ "${word}" dẫn đến kết thúc (có thể từ này đã là kết thúc hoặc không có đường đi)`, 'info');
-            }
-        } catch (error) {
-            this.showResult(chainsResult, 'Lỗi khi tìm chuỗi từ', 'error');
-        }
-    }
-
-    createEnhancedWordList(wordsData) {
-        return `<div class="word-list">${wordsData.map(item => {
-            const wordClass = item.isDead ? 'word-item dead-word' : 'word-item live-word';
-            const title = item.isDead ? 'Từ "kết thúc" - có thể kết thúc trò chơi. Nhấp để sao chép.' : 'Từ "sống" - có thể tiếp tục. Nhấp để sao chép.';
-            return `<span class="${wordClass}" title="${title}">${item.word}</span>`;
-        }).join('')}</div>`;
-    }
-
-    createChainsDisplay(chains) {
-        return chains.map((chainInfo, index) => {
-            const statusClass = chainInfo.isGameEnding ? 'game-ending' : 'can-continue';
-            const statusText = chainInfo.isGameEnding ? 'Kết thúc game' : 'Có thể tiếp tục';
-            
-            return `
-                <div class="chain-result-item">
-                    <div class="chain-header">
-                        <span class="chain-info">Chuỗi ${index + 1} (${chainInfo.length} từ)</span>
-                        <span class="chain-status ${statusClass}">${statusText}</span>
-                    </div>
-                    <div class="chain-words">${chainInfo.chain.join(' → ')}</div>
-                </div>
-            `;
-        }).join('');
-    }
-
     async loadUserWords() {
         try {
             const userWords = await window.electronAPI.getUserWords();
@@ -453,32 +336,6 @@ class WordChainApp {
         ).join('')}</div>`;
     }
 
-    async validateWord(type) {
-        const validateWordInput = getValidateWordInput();
-        const validateResult = getValidateResult();
-        
-        if (!validateWordInput || !validateResult) return;
-        
-        const word = validateWordInput.value.trim();
-
-        if (!word) {
-            this.showResult(validateResult, 'Vui lòng nhập từ cần kiểm tra', 'error');
-            return;
-        }
-
-        try {
-            // Only check word existence (simplified validation)
-            const result = await window.electronAPI.hasWord(word);
-            const message = result ? 
-                `✅ Từ "<strong>${word}</strong>" có trong từ điển` : 
-                `❌ Từ "<strong>${word}</strong>" không có trong từ điển`;
-            
-            this.showResult(validateResult, message, result ? 'success' : 'error');
-        } catch (error) {
-            this.showResult(validateResult, 'Lỗi khi kiểm tra từ', 'error');
-        }
-    }
-
     async changeLanguage() {
         const languageSelect = getLanguageSelect();
         if (!languageSelect) return;
@@ -489,14 +346,14 @@ class WordChainApp {
             await this.updateStats();
             
             // Clear all input fields
-            const inputs = ['findWord', 'validateWord', 'chainsWord', 'newWords'];
+            const inputs = ['findWord', 'newWords'];
             inputs.forEach(id => {
                 const input = document.getElementById(id);
                 if (input) input.value = '';
             });
 
             // Clear all result areas
-            const results = ['findResult', 'validateResult', 'chainsResult', 'addResult'];
+            const results = ['findResult', 'addResult'];
             results.forEach(id => {
                 const result = document.getElementById(id);
                 if (result) result.innerHTML = '';

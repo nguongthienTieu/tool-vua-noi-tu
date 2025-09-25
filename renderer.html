@@ -38,8 +38,6 @@
         <!-- Main functionality tabs -->
         <nav class="tab-nav">
             <button class="tab-btn active" data-tab="find">Tìm từ</button>
-            <button class="tab-btn" data-tab="validate">Kiểm tra từ</button>
-            <button class="tab-btn" data-tab="chains">Tìm chuỗi</button>
             <button class="tab-btn" data-tab="manage">Quản lý từ</button>
         </nav>
 
@@ -56,39 +54,6 @@
                     <button id="findPrevBtn" class="action-btn">Tìm từ đứng trước</button>
                 </div>
                 <div id="findResult" class="result-area"></div>
-            </div>
-
-            <!-- Validate words tab -->
-            <div id="validate-tab" class="tab-panel">
-                <div class="input-group">
-                    <label for="validateWord">Nhập từ cần kiểm tra:</label>
-                    <input type="text" id="validateWord" placeholder="VD: bánh mì (Vietnamese) or apple (English)">
-                </div>
-                <div class="button-group">
-                    <button id="checkWordExistBtn" class="action-btn">Kiểm tra từ có trong từ điển</button>
-                </div>
-                
-                <div id="validateResult" class="result-area"></div>
-            </div>
-
-            <!-- Find chains tab -->
-            <div id="chains-tab" class="tab-panel">
-                <div class="input-group">
-                    <label for="chainsWord">Nhập từ để tìm chuỗi dẫn đến kết thúc:</label>
-                    <input type="text" id="chainsWord" placeholder="VD: bánh mì (Vietnamese) or cat (English)">
-                </div>
-                <div class="settings-group">
-                    <div class="setting-item">
-                        <label for="maxChains">Số chuỗi tối đa (1-5):</label>
-                        <input type="number" id="maxChains" value="5" min="1" max="5">
-                    </div>
-                    <div class="setting-item">
-                        <label for="maxLength">Độ dài tối đa:</label>
-                        <input type="number" id="maxLength" value="10" min="2" max="10">
-                    </div>
-                </div>
-                <button id="generateChainsBtn" class="action-btn">Tìm chuỗi kết thúc</button>
-                <div id="chainsResult" class="result-area"></div>
             </div>
 
             <!-- Word management tab -->
