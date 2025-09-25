@@ -108,7 +108,7 @@ body {
 
 .stats-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
     gap: 12px;
 }
 
@@ -127,6 +127,28 @@ body {
     font-size: 12px;
     font-weight: 600;
     color: #333;
+}
+
+.language-select {
+    padding: 4px 8px;
+    font-size: 11px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: white;
+    color: #333;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.language-select:hover {
+    border-color: #667eea;
+    box-shadow: 0 0 3px rgba(102, 126, 234, 0.3);
+}
+
+.language-select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 5px rgba(102, 126, 234, 0.5);
 }
 
 /* Tab navigation */

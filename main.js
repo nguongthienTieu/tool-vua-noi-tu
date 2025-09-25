@@ -111,6 +111,16 @@ class ElectronWordChainApp {
             return shuffled.slice(0, count);
         });
 
+        // Handle language switching
+        ipcMain.handle('set-language', async (event, language) => {
+            this.wordChainHelper.setLanguage(language);
+            return this.wordChainHelper.getLanguage();
+        });
+
+        ipcMain.handle('get-language', async (event) => {
+            return this.wordChainHelper.getLanguage();
+        });
+
         // Handle window controls
         ipcMain.handle('toggle-always-on-top', async (event) => {
             const isOnTop = this.mainWindow.isAlwaysOnTop();

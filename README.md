@@ -1,18 +1,21 @@
-# 🎯 Vua nối từ Beng - Trợ thủ chuyên nghiệp cho game nối từ tiếng Việt
+# 🎯 Vua nối từ Beng - Trợ thủ đa ngôn ngữ cho game nối từ
 
-> **Ứng dụng desktop thông minh giúp bạn chiến thắng mọi trận nối từ tiếng Việt!**
+> **Ứng dụng desktop thông minh hỗ trợ nối từ tiếng Việt và tiếng Anh!**
 
-Vua nối từ Beng là ứng dụng desktop được thiết kế đặc biệt cho trò chơi nối từ tiếng Việt - nơi âm tiết cuối của từ này phải giống âm tiết đầu của từ tiếp theo. Với cơ sở dữ liệu khổng lồ hơn **120,000 từ ghép tiếng Việt** từ 4 nguồn uy tín, ứng dụng sẽ là người bạn đồng hành không thể thiếu!
+Vua nối từ Beng là ứng dụng desktop hỗ trợ đa ngôn ngữ cho trò chơi nối từ. Hỗ trợ **tiếng Việt** (nối theo âm tiết) và **tiếng Anh** (nối theo chữ cái) với cơ sở dữ liệu khổng lồ:
+- **68,900+ từ ghép tiếng Việt** từ 4 nguồn uy tín
+- **274,900+ từ tiếng Anh** từ từ điển chuẩn
 
 ---
 
 ## 🌟 Tại sao chọn Vua nối từ Beng?
 
-### 💪 Siêu mạnh mẽ
-- **120,000+ từ ghép tiếng Việt** từ 4 nguồn dữ liệu uy tín
+### 💪 Siêu mạnh mẽ & Đa ngôn ngữ
+- **🇻🇳 Tiếng Việt**: 68,900+ từ ghép, nối theo âm tiết (bánh mì → mì quảng)
+- **🇺🇸 Tiếng Anh**: 274,900+ từ, nối theo chữ cái (cat → top)
+- **Chuyển đổi ngôn ngữ** - switch giữa tiếng Việt và Anh dễ dàng
 - **Tìm kiếm siêu nhanh** - kết quả trong tích tắc
 - **Phát hiện từ "kết thúc"** - biết trước từ nào có thể kết thúc game
-- **Tự động tìm chuỗi thắng** - đề xuất 3-5 chuỗi từ để thắng nhanh
 
 ### 🎨 Thân thiện và dễ dùng  
 - **Giao diện đẹp mắt** - thiết kế hiện đại, dễ nhìn
@@ -20,9 +23,9 @@ Vua nối từ Beng là ứng dụng desktop được thiết kế đặc biệt
 - **Luôn ở trên cùng** - tiện dùng cùng lúc với game khác
 - **Sao chép nhanh** - nhấp vào từ là copy ngay
 
-### 🚀 Tính năng thông minh
-- **Kiểm tra từ hợp lệ** - xác minh từ có trong từ điển không
-- **Kiểm tra nối từ** - biết trước hai từ có nối được không  
+### 🚀 Tính năng thông minh (Đã đơn giản hóa)
+- **Kiểm tra từ tồn tại** - xác minh từ có trong từ điển không
+- **Tìm từ theo sau/trước** - gợi ý từ có thể nối
 - **Quản lý từ cá nhân** - thêm từ mới vào bộ từ điển riêng
 - **Thống kê chi tiết** - theo dõi tiến độ và hiệu suất
 
@@ -213,22 +216,26 @@ npm test
 npm run examples
 ```
 
-### 🎯 **API cơ bản cho lập trình viên**
+### 🎯 **API đa ngôn ngữ cho lập trình viên**
 ```javascript
 const WordChainHelper = require('./index.js');
-const helper = new WordChainHelper();
 
-// Kiểm tra nối từ
-helper.canChain('bánh mì', 'mì quảng'); // true
+// Vietnamese (tiếng Việt) - syllable-based chaining
+const vnHelper = new WordChainHelper('vietnamese');
+vnHelper.canChain('bánh mì', 'mì quảng'); // true
+vnHelper.findNextWords('bánh mì'); // ['mì chính', 'mì quảng', ...]
+vnHelper.hasWord('bánh mì'); // true
 
-// Tìm từ theo sau
-helper.findNextWords('bánh mì'); // ['mì chính', 'mì quảng', ...]
+// English - letter-based chaining  
+const enHelper = new WordChainHelper('english');
+enHelper.canChain('cat', 'top'); // true
+enHelper.findNextWords('cat'); // ['tab', 'tag', 'tan', ...]
+enHelper.hasWord('apple'); // true
 
-// Kiểm tra từ hợp lệ
-helper.hasWord('bánh mì'); // true
-helper.isValidCompoundWord('bánh mì'); // true
-
-// Validate chuỗi từ
+// Language switching
+const helper = new WordChainHelper('vietnamese');
+helper.setLanguage('english'); // Switch to English
+helper.getLanguage(); // 'english'
 helper.validateChain(['bánh mì', 'mì quảng', 'quảng nam']); // true
 ```
 

@@ -9,66 +9,91 @@ const vietnameseDict = require('./vietnamese-dictionary');
 const hongocducDict = require('./hongocduc-dictionary');
 const tudientvDict = require('./tudientv-dictionary');
 const wiktionaryDict = require('./wiktionary-dictionary');
+const englishDict = require('./english-dictionary');
 const fs = require('fs');
 const path = require('path');
 
 class WordChainHelper {
-    constructor() {
+    constructor(language = 'vietnamese') {
         this.words = new Set();
-        this.language = 'vietnamese'; // Chỉ hỗ trợ tiếng Việt
+        this.language = language.toLowerCase(); // Support 'vietnamese' or 'english'
         this.deadWords = new Set(); // Từ "kết thúc" - không thể tiếp tục
         this.wordHistory = new Map(); // Theo dõi lịch sử sử dụng từ
         this.userWords = new Set(); // Từ do người dùng thêm vào
         this.userWordsFile = path.join(__dirname, 'user-words.json');
         
-        // Tự động tải từ điển tiếng Việt từ các nguồn @undertheseanlp/dictionary
-        this.addWords(vietnameseDict.getAllWords());
-        this.addWords(hongocducDict.getAllWords());
-        this.addWords(tudientvDict.getAllWords());
-        this.addWords(wiktionaryDict.getAllWords());
+        if (this.language === 'english') {
+            // Load English dictionary
+            this.addWords(englishDict.getAllWords());
+        } else {
+            // Default to Vietnamese - Load Vietnamese dictionaries
+            this.language = 'vietnamese';
+            this.addWords(vietnameseDict.getAllWords());
+            this.addWords(hongocducDict.getAllWords());
+            this.addWords(tudientvDict.getAllWords());
+            this.addWords(wiktionaryDict.getAllWords());
+        }
         
         // Tải từ do người dùng thêm vào từ file
         this.loadUserWords();
     }
 
     /**
-     * Tách âm tiết từ một từ ghép tiếng Việt
-     * @param {string} word - Từ ghép tiếng Việt
-     * @returns {string[]} Mảng các âm tiết
+     * Tách âm tiết từ một từ ghép tiếng Việt hoặc ký tự từ từ tiếng Anh
+     * @param {string} word - Từ ghép tiếng Việt hoặc từ tiếng Anh
+     * @returns {string[]} Mảng các âm tiết (Vietnamese) hoặc array với một từ (English)
      */
     extractSyllables(word) {
         if (!word || typeof word !== 'string') return [];
         
-        // Tách theo khoảng trắng (từ ghép tiếng Việt được phân tách bằng khoảng trắng)
+        if (this.language === 'english') {
+            // For English, return the whole word as a single element
+            return [word.trim().toLowerCase()];
+        }
+        
+        // Vietnamese: Tách theo khoảng trắng (từ ghép tiếng Việt được phân tách bằng khoảng trắng)
         return word.trim().toLowerCase().split(/\s+/);
     }
 
     /**
-     * Lấy âm tiết kết nối để tạo chuỗi từ (âm tiết cuối hoặc đầu)
+     * Lấy âm tiết kết nối để tạo chuỗi từ (âm tiết cuối hoặc đầu cho tiếng Việt, ký tự cuối/đầu cho tiếng Anh)
      * @param {string} word - Từ cần lấy âm tiết kết nối
      * @param {boolean} isLast - Nếu true, lấy âm tiết cuối; nếu false, lấy âm tiết đầu  
      * @returns {string} Âm tiết kết nối
      */
     getConnectingElement(word, isLast = true) {
+        if (!word || typeof word !== 'string') return '';
+        
+        if (this.language === 'english') {
+            // English - use first/last letter
+            const cleanWord = word.toLowerCase().trim();
+            return isLast ? cleanWord.slice(-1) : cleanWord.charAt(0);
+        }
+        
+        // Vietnamese - use syllables
         const syllables = this.extractSyllables(word);
         if (syllables.length === 0) return '';
         
-        if (this.language === 'vietnamese' || this.language === 'tiếng việt') {
-            return isLast ? syllables[syllables.length - 1] : syllables[0];
-        }
-        
-        // English - use letters
-        return isLast ? word.toLowerCase().slice(-1) : word.toLowerCase().charAt(0);
+        return isLast ? syllables[syllables.length - 1] : syllables[0];
     }
 
     /**
-     * Kiểm tra xem một từ có phải là từ ghép 2 âm tiết hợp lệ hay không
+     * Kiểm tra xem một từ có hợp lệ hay không
      * @param {string} word - Từ cần kiểm tra
-     * @returns {boolean} True nếu là từ ghép hợp lệ
+     * @returns {boolean} True nếu từ hợp lệ
      */
     isValidCompoundWord(word) {
+        if (!word || typeof word !== 'string') return false;
+        
+        if (this.language === 'english') {
+            // English: Check if it's a valid single word with only letters
+            const cleanWord = word.trim();
+            return /^[a-zA-Z]+$/.test(cleanWord) && cleanWord.length > 1;
+        }
+        
+        // Vietnamese: Must have exactly 2 syllables
         const syllables = this.extractSyllables(word);
-        return syllables.length === 2; // Chỉ chấp nhận từ ghép tiếng Việt có đúng 2 âm tiết
+        return syllables.length === 2;
     }
     
     /**
@@ -88,8 +113,9 @@ class WordChainHelper {
             if (typeof word === 'string' && word.length > 0) {
                 const normalizedWord = word.toLowerCase().trim();
                 
-                // Kiểm tra từ ghép hợp lệ cho tiếng Việt
-                if (this.isValidCompoundWord(normalizedWord)) {
+                // For dictionary loading (not user added), accept all words
+                // For user added words, validate format
+                if (!isUserAdded || this.isValidCompoundWord(normalizedWord)) {
                     if (isUserAdded && this.words.has(normalizedWord)) {
                         // Từ đã tồn tại - không hợp lệ khi thêm từ người dùng
                         results.duplicates.push(normalizedWord);
@@ -669,11 +695,50 @@ class WordChainHelper {
     }
 
     /**
-     * Làm mới từ điển (chỉ để tương thích, tool chỉ hỗ trợ tiếng Việt)
+     * Set language and reload dictionary
+     * @param {string} language - 'vietnamese' or 'english'
      */
-    setLanguage() {
-        // Không làm gì - tool chỉ hỗ trợ tiếng Việt
-        console.log('Tool này chỉ hỗ trợ tiếng Việt');
+    setLanguage(language = 'vietnamese') {
+        const oldLanguage = this.language;
+        this.language = language.toLowerCase();
+        
+        if (this.language !== 'vietnamese' && this.language !== 'english') {
+            this.language = 'vietnamese';
+        }
+        
+        // Only reload if language actually changed
+        if (oldLanguage !== this.language) {
+            // Clear existing dictionary words (but keep user words)
+            this.words.clear();
+            this.deadWords.clear();
+            
+            // Reload appropriate dictionary
+            if (this.language === 'english') {
+                this.addWords(englishDict.getAllWords());
+            } else {
+                this.addWords(vietnameseDict.getAllWords());
+                this.addWords(hongocducDict.getAllWords());
+                this.addWords(tudientvDict.getAllWords());
+                this.addWords(wiktionaryDict.getAllWords());
+            }
+            
+            // Re-add user words
+            const userWordsArray = Array.from(this.userWords);
+            this.userWords.clear();
+            if (userWordsArray.length > 0) {
+                this.addWords(userWordsArray, true);
+            }
+            
+            console.log(`Language changed to ${this.language}`);
+        }
+    }
+
+    /**
+     * Get current language
+     * @returns {string} Current language ('vietnamese' or 'english')
+     */
+    getLanguage() {
+        return this.language;
     }
 
     /**
@@ -737,50 +802,47 @@ module.exports = WordChainHelper;
 
 // Nếu chạy trực tiếp, hiển thị ví dụ sử dụng
 if (require.main === module) {
-    console.log('Trợ giúp Từ Ghép Tiếng Việt - Ví dụ sử dụng:');
-    console.log('====================================================');
+    console.log('Word Chain Helper - Multi-language Support Demo');
+    console.log('=================================================');
     
-    // Ví dụ sử dụng tiếng Việt với từ điển @undertheseanlp/dictionary
-    const vietnameseHelper = new WordChainHelper();
+    // Vietnamese example
+    console.log('\n🇻🇳 VIETNAMESE (Tiếng Việt):');
+    const vietnameseHelper = new WordChainHelper('vietnamese');
     
-    console.log('\nTổng số từ trong từ điển từ @undertheseanlp/dictionary:', vietnameseHelper.getAllWords().length);
-    console.log('Một số từ mẫu:', vietnameseHelper.getAllWords().slice(0, 10));
+    console.log('Language:', vietnameseHelper.getLanguage());
+    console.log('Total words in dictionary:', vietnameseHelper.getAllWords().length);
+    console.log('Sample words:', vietnameseHelper.getAllWords().slice(0, 5));
     
-    console.log('\nKiểm tra từ nối:');
-    console.log('Có thể nối "con voi" với "voi con" không?', vietnameseHelper.canChain('con voi', 'voi con'));
-    console.log('Có thể nối "bánh mì" với "mì quảng" không?', vietnameseHelper.canChain('bánh mì', 'mì quảng'));
-    console.log('Có thể nối "hoa đào" với "đào tạo" không?', vietnameseHelper.canChain('hoa đào', 'đào tạo'));
+    console.log('\nWord chaining tests:');
+    console.log('Can chain "con voi" → "voi con":', vietnameseHelper.canChain('con voi', 'voi con'));
+    console.log('Can chain "bánh mì" → "mì quảng":', vietnameseHelper.canChain('bánh mì', 'mì quảng'));
     
-    console.log('\nTìm từ có thể theo sau:');
-    console.log('Từ có thể theo sau "con voi":', vietnameseHelper.findNextWords('con voi', true, true).slice(0, 5));
-    console.log('Từ có thể theo sau "bánh mì":', vietnameseHelper.findNextWords('bánh mì', true, true).slice(0, 5));
+    console.log('\nNext words:');
+    console.log('After "bánh mì":', vietnameseHelper.findNextWords('bánh mì', true, true).slice(0, 3));
     
-    console.log('\nTìm từ có thể đứng trước:');
-    console.log('Từ có thể đứng trước "mì quảng":', vietnameseHelper.findPreviousWords('mì quảng').slice(0, 5));
-    console.log('Từ có thể đứng trước "voi con":', vietnameseHelper.findPreviousWords('voi con').slice(0, 5));
+    // English example
+    console.log('\n🇺🇸 ENGLISH:');
+    const englishHelper = new WordChainHelper('english');
     
-    console.log('\nKiểm tra chuỗi từ:');
-    const chain1 = ['bánh mì', 'mì quảng', 'quảng nam'];
-    const chain2 = ['con voi', 'voi con', 'con chó'];
-    const chain3 = ['hoa đào', 'đào tạo', 'tạo nên'];
-    console.log(`Chuỗi "${chain1.join(' → ')}" hợp lệ:`, vietnameseHelper.validateChain(chain1));
-    console.log(`Chuỗi "${chain2.join(' → ')}" hợp lệ:`, vietnameseHelper.validateChain(chain2));
-    console.log(`Chuỗi "${chain3.join(' → ')}" hợp lệ:`, vietnameseHelper.validateChain(chain3));
+    console.log('Language:', englishHelper.getLanguage());
+    console.log('Total words in dictionary:', englishHelper.getAllWords().length);
+    console.log('Sample words:', englishHelper.getAllWords().slice(0, 5));
     
-    // Thêm từ của người dùng
-    vietnameseHelper.addWords(['xe hơi', 'hơi nước', 'nước mắm', 'mắm tôm'], true);
-    console.log('\nĐã thêm từ của người dùng:', vietnameseHelper.getUserWords());
+    console.log('\nWord chaining tests (letter-based):');
+    console.log('Can chain "cat" → "top":', englishHelper.canChain('cat', 'top'));
+    console.log('Can chain "dog" → "green":', englishHelper.canChain('dog', 'green'));
+    console.log('Can chain "apple" → "egg":', englishHelper.canChain('apple', 'egg'));
     
-    console.log('\nThống kê cơ sở dữ liệu:');
-    const stats = vietnameseHelper.getStats();
-    console.log('- Tổng số từ:', stats.totalWords);
-    console.log('- Từ ghép hợp lệ:', stats.compoundWords);
-    console.log('- Từ do người dùng thêm:', stats.userAddedWords);
-    console.log('- Từ "kết thúc" (không thể tiếp tục):', stats.deadWords);
+    console.log('\nNext words:');
+    console.log('After "cat":', englishHelper.findNextWords('cat', true, true).slice(0, 5));
+    console.log('After "dog":', englishHelper.findNextWords('dog', true, true).slice(0, 5));
     
-    if (stats.deadWords > 0) {
-        console.log('\nMột số từ "kết thúc":', vietnameseHelper.getDeadWords().slice(0, 5));
-    }
+    // Validation tests
+    console.log('\nWord validation:');
+    console.log('Vietnamese "bánh mì" exists:', vietnameseHelper.hasWord('bánh mì'));
+    console.log('English "apple" exists:', englishHelper.hasWord('apple'));
+    console.log('English "cat" exists:', englishHelper.hasWord('cat'));
     
-    console.log('\n*** Tool này chỉ hỗ trợ từ ghép tiếng Việt từ nguồn @undertheseanlp/dictionary ***');
+    console.log('\n🎯 Both Vietnamese syllable-based and English letter-based chaining supported!');
+    console.log('🔄 Use setLanguage() to switch between languages programmatically.');
 }
