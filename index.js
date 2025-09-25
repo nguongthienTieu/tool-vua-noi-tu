@@ -134,13 +134,14 @@ class WordChainHelper {
             if (typeof word === 'string') {
                 const normalizedWord = word.toLowerCase().trim();
                 
-                if (this.userWords.has(normalizedWord)) {
+                if (this.words.has(normalizedWord)) {
                     this.words.delete(normalizedWord);
+                    // Also remove from userWords if it was user-added
                     this.userWords.delete(normalizedWord);
                     this.deadWords.delete(normalizedWord);
                     results.removed.push(normalizedWord);
                 } else {
-                    // Từ không có trong danh sách từ người dùng - không hợp lệ
+                    // Từ không tồn tại trong từ điển
                     results.notFound.push(normalizedWord);
                 }
             }
@@ -430,7 +431,7 @@ class WordChainHelper {
                 }
             } else if (!isDeadWord && currentChain.length < maxLength) {
                 // Continue building chain
-                const nextWordsData = this.findNextWords(currentWord, false, true);
+                const nextWordsData = this.findNextWords(currentWord, true, true); // Prioritize dead words
                 
                 // Moderate pruning: take first 2 words to balance performance and results
                 const wordsToTry = nextWordsData.slice(0, 2);
@@ -442,10 +443,30 @@ class WordChainHelper {
                     }
                     
                     const newChain = [...currentChain, nextWord];
-                    const newChainKey = newChain.join('|');
                     
-                    if (!chainStrings.has(newChainKey)) {
-                        queue.push(newChain);
+                    // Check if this next word is dead - if so, we found a valid chain
+                    let nextWordIsDead = false;
+                    if (deadWordCache.has(nextWord)) {
+                        nextWordIsDead = deadWordCache.get(nextWord);
+                    } else {
+                        const nextWordNexts = this.findNextWords(nextWord, false, true);
+                        nextWordIsDead = nextWordNexts.length === 0;
+                        deadWordCache.set(nextWord, nextWordIsDead);
+                    }
+                    
+                    if (nextWordIsDead && newChain.length >= 2) {
+                        // Found a chain ending with a dead word
+                        const chainKey = newChain.join('|');
+                        if (!chainStrings.has(chainKey)) {
+                            chains.push([...newChain]);
+                            chainStrings.add(chainKey);
+                        }
+                    } else if (!nextWordIsDead) {
+                        // Continue building chain only if next word is not dead
+                        const newChainKey = newChain.join('|');
+                        if (!chainStrings.has(newChainKey)) {
+                            queue.push(newChain);
+                        }
                     }
                 }
             }
