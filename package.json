@@ -29,5 +29,8 @@
   "license": "ISC",
   "devDependencies": {
     "electron": "^38.1.2"
+  },
+  "dependencies": {
+    "an-array-of-english-words": "^2.0.0"
   }
 }

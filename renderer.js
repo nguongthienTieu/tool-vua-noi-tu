@@ -8,6 +8,7 @@ const getExamplesArea = () => document.getElementById('examplesArea');
 // Stats elements
 const getTotalWordsEl = () => document.getElementById('totalWords');
 const getUserWordsEl = () => document.getElementById('userWords');
+const getLanguageSelect = () => document.getElementById('languageSelect');
 
 // Find tab elements
 const getFindWordInput = () => document.getElementById('findWord');
@@ -15,15 +16,9 @@ const getFindNextBtn = () => document.getElementById('findNextBtn');
 const getFindPrevBtn = () => document.getElementById('findPrevBtn');
 const getFindResult = () => document.getElementById('findResult');
 
-// Validate tab elements
+// Validate tab elements (simplified)
 const getValidateWordInput = () => document.getElementById('validateWord');
 const getCheckWordExistBtn = () => document.getElementById('checkWordExistBtn');
-const getCheckValidFormatBtn = () => document.getElementById('checkValidFormatBtn');
-const getValidateWord1Input = () => document.getElementById('validateWord1');
-const getValidateWord2Input = () => document.getElementById('validateWord2');
-const getCheckCanChainBtn = () => document.getElementById('checkCanChainBtn');
-const getValidateChainInput = () => document.getElementById('validateChain');
-const getCheckChainBtn = () => document.getElementById('checkChainBtn');
 const getValidateResult = () => document.getElementById('validateResult');
 
 // Chains generation tab elements
@@ -87,47 +82,22 @@ class WordChainApp {
             });
         }
 
-        // Validate functionality
+        // Validate functionality (simplified)
         const checkWordExistBtn = getCheckWordExistBtn();
-        const checkValidFormatBtn = getCheckValidFormatBtn();
-        const checkCanChainBtn = getCheckCanChainBtn();
-        const checkChainBtn = getCheckChainBtn();
         const validateWordInput = getValidateWordInput();
-        const validateWord1Input = getValidateWord1Input();
-        const validateWord2Input = getValidateWord2Input();
-        const validateChainInput = getValidateChainInput();
+        const languageSelect = getLanguageSelect();
         
         if (checkWordExistBtn) {
             checkWordExistBtn.addEventListener('click', () => this.validateWord('exists'));
-        }
-        if (checkValidFormatBtn) {
-            checkValidFormatBtn.addEventListener('click', () => this.validateWord('format'));
-        }
-        if (checkCanChainBtn) {
-            checkCanChainBtn.addEventListener('click', () => this.validateTwoWords());
-        }
-        if (checkChainBtn) {
-            checkChainBtn.addEventListener('click', () => this.validateWordChain());
         }
         if (validateWordInput) {
             validateWordInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') this.validateWord('exists');
             });
         }
-        if (validateWord1Input) {
-            validateWord1Input.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') this.validateTwoWords();
-            });
+        if (languageSelect) {
+            languageSelect.addEventListener('change', () => this.changeLanguage());
         }
-        if (validateWord2Input) {
-            validateWord2Input.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') this.validateTwoWords();
-            });
-        }
-        if (validateChainInput) {
-            validateChainInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') this.validateWordChain();
-            });
         }
 
         // Generate chains
@@ -497,20 +467,11 @@ class WordChainApp {
         }
 
         try {
-            let result;
-            let message;
-            
-            if (type === 'exists') {
-                result = await window.electronAPI.hasWord(word);
-                message = result ? 
-                    `✅ Từ "<strong>${word}</strong>" có trong từ điển` : 
-                    `❌ Từ "<strong>${word}</strong>" không có trong từ điển`;
-            } else if (type === 'format') {
-                result = await window.electronAPI.isValidCompoundWord(word);
-                message = result ? 
-                    `✅ Từ "<strong>${word}</strong>" có định dạng hợp lệ (2 âm tiết)` : 
-                    `❌ Từ "<strong>${word}</strong>" không có định dạng hợp lệ (cần đúng 2 âm tiết)`;
-            }
+            // Only check word existence (simplified validation)
+            const result = await window.electronAPI.hasWord(word);
+            const message = result ? 
+                `✅ Từ "<strong>${word}</strong>" có trong từ điển` : 
+                `❌ Từ "<strong>${word}</strong>" không có trong từ điển`;
             
             this.showResult(validateResult, message, result ? 'success' : 'error');
         } catch (error) {
@@ -518,63 +479,34 @@ class WordChainApp {
         }
     }
 
-    async validateTwoWords() {
-        const validateWord1Input = getValidateWord1Input();
-        const validateWord2Input = getValidateWord2Input();
-        const validateResult = getValidateResult();
-        
-        if (!validateWord1Input || !validateWord2Input || !validateResult) return;
-        
-        const word1 = validateWord1Input.value.trim();
-        const word2 = validateWord2Input.value.trim();
+    async changeLanguage() {
+        const languageSelect = getLanguageSelect();
+        if (!languageSelect) return;
 
-        if (!word1 || !word2) {
-            this.showResult(validateResult, 'Vui lòng nhập cả hai từ để kiểm tra', 'error');
-            return;
-        }
-
+        const selectedLanguage = languageSelect.value;
         try {
-            const canChain = await window.electronAPI.canChain(word1, word2);
-            const message = canChain ? 
-                `✅ Có thể nối từ "<strong>${word1}</strong>" với "<strong>${word2}</strong>"` : 
-                `❌ Không thể nối từ "<strong>${word1}</strong>" với "<strong>${word2}</strong>"`;
+            await window.electronAPI.setLanguage(selectedLanguage);
+            await this.updateStats();
             
-            this.showResult(validateResult, message, canChain ? 'success' : 'error');
+            // Clear all input fields
+            const inputs = ['findWord', 'validateWord', 'chainsWord', 'newWords'];
+            inputs.forEach(id => {
+                const input = document.getElementById(id);
+                if (input) input.value = '';
+            });
+
+            // Clear all result areas
+            const results = ['findResult', 'validateResult', 'chainsResult', 'addResult'];
+            results.forEach(id => {
+                const result = document.getElementById(id);
+                if (result) result.innerHTML = '';
+            });
+
+            this.showResult(document.querySelector('.result-area'), 
+                `✅ Đã chuyển sang ${selectedLanguage === 'vietnamese' ? 'tiếng Việt' : 'tiếng Anh'}`, 
+                'success');
         } catch (error) {
-            this.showResult(validateResult, 'Lỗi khi kiểm tra nối từ', 'error');
-        }
-    }
-
-    async validateWordChain() {
-        const validateChainInput = getValidateChainInput();
-        const validateResult = getValidateResult();
-        
-        if (!validateChainInput || !validateResult) return;
-        
-        const chainText = validateChainInput.value.trim();
-
-        if (!chainText) {
-            this.showResult(validateResult, 'Vui lòng nhập chuỗi từ cần kiểm tra', 'error');
-            return;
-        }
-
-        const chain = chainText.split(',').map(word => word.trim()).filter(word => word);
-
-        if (chain.length < 2) {
-            this.showResult(validateResult, 'Chuỗi từ phải có ít nhất 2 từ', 'error');
-            return;
-        }
-
-        try {
-            const isValid = await window.electronAPI.validateChain(chain);
-            const chainDisplay = chain.join(' → ');
-            const message = isValid ? 
-                `✅ Chuỗi từ "<strong>${chainDisplay}</strong>" hợp lệ` : 
-                `❌ Chuỗi từ "<strong>${chainDisplay}</strong>" không hợp lệ`;
-            
-            this.showResult(validateResult, message, isValid ? 'success' : 'error');
-        } catch (error) {
-            this.showResult(validateResult, 'Lỗi khi kiểm tra chuỗi từ', 'error');
+            this.showResult(document.querySelector('.result-area'), 'Lỗi khi chuyển ngôn ngữ', 'error');
         }
     }
 

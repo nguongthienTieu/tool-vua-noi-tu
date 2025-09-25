@@ -25,6 +25,13 @@
                     <span class="stat-label">Từ người dùng:</span>
                     <span id="userWords" class="stat-value">-</span>
                 </div>
+                <div class="stat-item">
+                    <span class="stat-label">Ngôn ngữ:</span>
+                    <select id="languageSelect" class="language-select">
+                        <option value="vietnamese">Tiếng Việt</option>
+                        <option value="english">English</option>
+                    </select>
+                </div>
             </div>
         </section>
 
@@ -42,7 +49,7 @@
             <div id="find-tab" class="tab-panel active">
                 <div class="input-group">
                     <label for="findWord">Nhập từ:</label>
-                    <input type="text" id="findWord" placeholder="VD: con voi">
+                    <input type="text" id="findWord" placeholder="VD: con voi (Vietnamese) or cat (English)">
                 </div>
                 <div class="button-group">
                     <button id="findNextBtn" class="action-btn">Tìm từ theo sau</button>
@@ -55,31 +62,10 @@
             <div id="validate-tab" class="tab-panel">
                 <div class="input-group">
                     <label for="validateWord">Nhập từ cần kiểm tra:</label>
-                    <input type="text" id="validateWord" placeholder="VD: bánh mì">
+                    <input type="text" id="validateWord" placeholder="VD: bánh mì (Vietnamese) or apple (English)">
                 </div>
                 <div class="button-group">
                     <button id="checkWordExistBtn" class="action-btn">Kiểm tra từ có trong từ điển</button>
-                    <button id="checkValidFormatBtn" class="action-btn">Kiểm tra định dạng hợp lệ</button>
-                </div>
-                
-                <div class="input-group">
-                    <label for="validateWord1">Kiểm tra nối từ - Từ thứ nhất:</label>
-                    <input type="text" id="validateWord1" placeholder="VD: bánh mì">
-                </div>
-                <div class="input-group">
-                    <label for="validateWord2">Từ thứ hai:</label>
-                    <input type="text" id="validateWord2" placeholder="VD: mì quảng">
-                </div>
-                <div class="button-group">
-                    <button id="checkCanChainBtn" class="action-btn">Kiểm tra có thể nối từ</button>
-                </div>
-                
-                <div class="input-group">
-                    <label for="validateChain">Kiểm tra chuỗi từ (cách nhau bằng dấu phẩy):</label>
-                    <textarea id="validateChain" placeholder="VD: bánh mì, mì quảng, quảng nam" rows="2"></textarea>
-                </div>
-                <div class="button-group">
-                    <button id="checkChainBtn" class="action-btn">Kiểm tra chuỗi hợp lệ</button>
                 </div>
                 
                 <div id="validateResult" class="result-area"></div>
@@ -89,7 +75,7 @@
             <div id="chains-tab" class="tab-panel">
                 <div class="input-group">
                     <label for="chainsWord">Nhập từ để tìm chuỗi dẫn đến kết thúc:</label>
-                    <input type="text" id="chainsWord" placeholder="VD: bánh mì">
+                    <input type="text" id="chainsWord" placeholder="VD: bánh mì (Vietnamese) or cat (English)">
                 </div>
                 <div class="settings-group">
                     <div class="setting-item">
