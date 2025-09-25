@@ -19,6 +19,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
     getUserWords: () => ipcRenderer.invoke('get-user-words'),
     getRandomWords: (count) => ipcRenderer.invoke('get-random-words', count),
     
+    // Language support
+    setLanguage: (language) => ipcRenderer.invoke('set-language', language),
+    getLanguage: () => ipcRenderer.invoke('get-language'),
+    
     // Window controls
     toggleAlwaysOnTop: () => ipcRenderer.invoke('toggle-always-on-top')
 });
