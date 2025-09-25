@@ -91,9 +91,9 @@ class WordChainHelper {
             return /^[a-zA-Z]+$/.test(cleanWord) && cleanWord.length > 1;
         }
         
-        // Vietnamese: Must have exactly 2 syllables
+        // Vietnamese: Accept words with 1 or more syllables
         const syllables = this.extractSyllables(word);
-        return syllables.length === 2;
+        return syllables.length >= 1 && syllables.every(syllable => syllable.length > 0);
     }
     
     /**
@@ -722,11 +722,15 @@ class WordChainHelper {
                 this.addWords(wiktionaryDict.getAllWords());
             }
             
-            // Re-add user words
+            // Re-add user words without language-specific validation
             const userWordsArray = Array.from(this.userWords);
             this.userWords.clear();
             if (userWordsArray.length > 0) {
-                this.addWords(userWordsArray, true);
+                // Add user words directly without validation to preserve cross-language words
+                userWordsArray.forEach(word => {
+                    this.words.add(word);
+                    this.userWords.add(word);
+                });
             }
             
             console.log(`Language changed to ${this.language}`);
