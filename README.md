@@ -1,4 +1,4 @@
-# 🎯 Goat nối từ Beng - Trợ thủ chuyên nghiệp cho game nối từ tiếng Việt
+# 🎯 Vua nối từ Beng - Trợ thủ chuyên nghiệp cho game nối từ tiếng Việt
 
 > **Ứng dụng desktop thông minh giúp bạn chiến thắng mọi trận nối từ tiếng Việt!**
 
@@ -6,7 +6,7 @@ Goat nối từ Beng là ứng dụng desktop được thiết kế đặc biệ
 
 ---
 
-## 🌟 Tại sao chọn Goat nối từ Beng?
+## 🌟 Tại sao chọn Vua nối từ Beng?
 
 ### 💪 Siêu mạnh mẽ
 - **120,000+ từ ghép tiếng Việt** từ 4 nguồn dữ liệu uy tín
@@ -120,7 +120,7 @@ npm start
 - Validate tính hợp lệ của chuỗi từ hoàn chỉnh
 
 ### 📚 **Từ điển khổng lồ**
-- **147,583 từ** duy nhất sau khi loại bỏ trùng lặp
+- **52,220 từ** duy nhất sau khi loại bỏ trùng lặp
 - **4 nguồn dữ liệu** uy tín từ dự án @undertheseanlp/dictionary
 - Cập nhật liên tục với từ mới từ cộng đồng
 - Hỗ trợ thêm từ tùy chỉnh và lưu trữ bền vững
@@ -135,7 +135,7 @@ Giả sử trong game, đối thủ vừa đưa ra từ **"bánh mì"**
 **Bước 1:** Mở tab "Tìm từ", nhập "bánh mì"
 **Kết quả:** Danh sách từ có thể theo sau:
 - mì chính ✅
-- mì thánh 💀 *(từ kết thúc)*  
+- mì thánh 💀 *(từ kết thúc)*  (chỉ là ví dụ)
 - mì quảng ✅
 - mì ăn liền ✅
 
@@ -150,7 +150,7 @@ Giả sử trong game, đối thủ vừa đưa ra từ **"bánh mì"**
 
 **Bước 1:** Tab "Tìm chuỗi", nhập "con voi", chọn tìm 5 chuỗi
 **Kết quả:**
-1. con voi → voi biển → biển cả 💀 *(3 từ - thắng nhanh nhất)*
+1. con voi → voi biển → biển cả 💀 *(3 từ - thắng nhanh nhất)* (chỉ là ví dụ)
 2. con voi → voi con → con chó → chó sói 💀 *(4 từ)*
 3. con voi → voi ma → ma lai → lai căng 💀 *(4 từ)*
 
@@ -243,13 +243,14 @@ helper.validateChain(['bánh mì', 'mì quảng', 'quảng nam']); // true
 - **Nguồn tudientv:** 30,356 từ từ TudienTV  
 - **Nguồn wiktionary:** 27,149 từ từ Wiktionary Vietnamese
 
-**Tổng cộng:** 147,583 từ duy nhất sau khi loại bỏ trùng lặp.
+**Tổng cộng:** 52,220 từ duy nhất sau khi loại bỏ trùng lặp.
 
 ---
 
 ## 📧 Liên hệ & Hỗ trợ
 
 - **GitHub:** [nguongthienTieu/word-chain-helper](https://github.com/nguongthienTieu/word-chain-helper)
+- **Discord:** [dbeng_293]
 - **Issues:** Báo lỗi hoặc đề xuất tính năng mới
 - **License:** ISC - tự do sử dụng và chỉnh sửa
 
