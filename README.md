@@ -250,7 +250,7 @@ helper.validateChain(['bánh mì', 'mì quảng', 'quảng nam']); // true
 ## 📧 Liên hệ & Hỗ trợ
 
 - **GitHub:** [nguongthienTieu/word-chain-helper](https://github.com/nguongthienTieu/word-chain-helper)
-- **Discord:** [dbeng_293]
+- **Discord:** dbeng_29
 - **Issues:** Báo lỗi hoặc đề xuất tính năng mới
 - **License:** ISC - tự do sử dụng và chỉnh sửa
 
