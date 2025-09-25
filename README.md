@@ -2,7 +2,7 @@
 
 > **Ứng dụng desktop thông minh giúp bạn chiến thắng mọi trận nối từ tiếng Việt!**
 
-Goat nối từ Beng là ứng dụng desktop được thiết kế đặc biệt cho trò chơi nối từ tiếng Việt - nơi âm tiết cuối của từ này phải giống âm tiết đầu của từ tiếp theo. Với cơ sở dữ liệu khổng lồ hơn **120,000 từ ghép tiếng Việt** từ 4 nguồn uy tín, ứng dụng sẽ là người bạn đồng hành không thể thiếu!
+Vua nối từ Beng là ứng dụng desktop được thiết kế đặc biệt cho trò chơi nối từ tiếng Việt - nơi âm tiết cuối của từ này phải giống âm tiết đầu của từ tiếp theo. Với cơ sở dữ liệu khổng lồ hơn **120,000 từ ghép tiếng Việt** từ 4 nguồn uy tín, ứng dụng sẽ là người bạn đồng hành không thể thiếu!
 
 ---
 
