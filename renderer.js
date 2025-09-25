@@ -343,7 +343,7 @@ class WordChainApp {
         const selectedLanguage = languageSelect.value;
         try {
             await window.electronAPI.setLanguage(selectedLanguage);
-            await this.updateStats();
+            await this.loadStats();
             
             // Clear all input fields
             const inputs = ['findWord', 'newWords'];

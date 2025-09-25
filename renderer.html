@@ -17,20 +17,24 @@
         <!-- Stats display -->
         <section class="stats-section">
             <div class="stats-grid">
-                <div class="stat-item">
-                    <span class="stat-label">Tổng từ:</span>
-                    <span id="totalWords" class="stat-value">-</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Từ người dùng:</span>
-                    <span id="userWords" class="stat-value">-</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Ngôn ngữ:</span>
-                    <select id="languageSelect" class="language-select">
-                        <option value="vietnamese">Tiếng Việt</option>
-                        <option value="english">English</option>
-                    </select>
+                <div class="stats-row">
+                    <div class="word-counts">
+                        <div class="stat-item">
+                            <span class="stat-label">Tổng từ</span>
+                            <span id="totalWords" class="stat-value">-</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Từ người dùng</span>
+                            <span id="userWords" class="stat-value">-</span>
+                        </div>
+                    </div>
+                    <div class="language-section">
+                        <span class="stat-label">Ngôn ngữ:</span>
+                        <select id="languageSelect" class="language-select">
+                            <option value="vietnamese">Tiếng Việt</option>
+                            <option value="english">English</option>
+                        </select>
+                    </div>
                 </div>
             </div>
         </section>
