@@ -31,6 +31,7 @@
         <!-- Main functionality tabs -->
         <nav class="tab-nav">
             <button class="tab-btn active" data-tab="find">Tìm từ</button>
+            <button class="tab-btn" data-tab="validate">Kiểm tra từ</button>
             <button class="tab-btn" data-tab="chains">Tìm chuỗi</button>
             <button class="tab-btn" data-tab="manage">Quản lý từ</button>
         </nav>
@@ -48,6 +49,40 @@
                     <button id="findPrevBtn" class="action-btn">Tìm từ đứng trước</button>
                 </div>
                 <div id="findResult" class="result-area"></div>
+            </div>
+
+            <!-- Validate words tab -->
+            <div id="validate-tab" class="tab-panel">
+                <div class="input-group">
+                    <label for="validateWord">Nhập từ cần kiểm tra:</label>
+                    <input type="text" id="validateWord" placeholder="VD: bánh mì">
+                </div>
+                <div class="button-group">
+                    <button id="checkWordExistBtn" class="action-btn">Kiểm tra từ có trong từ điển</button>
+                    <button id="checkValidFormatBtn" class="action-btn">Kiểm tra định dạng hợp lệ</button>
+                </div>
+                
+                <div class="input-group">
+                    <label for="validateWord1">Kiểm tra nối từ - Từ thứ nhất:</label>
+                    <input type="text" id="validateWord1" placeholder="VD: bánh mì">
+                </div>
+                <div class="input-group">
+                    <label for="validateWord2">Từ thứ hai:</label>
+                    <input type="text" id="validateWord2" placeholder="VD: mì quảng">
+                </div>
+                <div class="button-group">
+                    <button id="checkCanChainBtn" class="action-btn">Kiểm tra có thể nối từ</button>
+                </div>
+                
+                <div class="input-group">
+                    <label for="validateChain">Kiểm tra chuỗi từ (cách nhau bằng dấu phẩy):</label>
+                    <textarea id="validateChain" placeholder="VD: bánh mì, mì quảng, quảng nam" rows="2"></textarea>
+                </div>
+                <div class="button-group">
+                    <button id="checkChainBtn" class="action-btn">Kiểm tra chuỗi hợp lệ</button>
+                </div>
+                
+                <div id="validateResult" class="result-area"></div>
             </div>
 
             <!-- Find chains tab -->
