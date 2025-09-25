@@ -91,9 +91,9 @@ class WordChainHelper {
             return /^[a-zA-Z]+$/.test(cleanWord) && cleanWord.length > 1;
         }
         
-        // Vietnamese: Accept words with 1 or more syllables
+        // Vietnamese: Accept words with exactly 2 syllables
         const syllables = this.extractSyllables(word);
-        return syllables.length >= 1 && syllables.every(syllable => syllable.length > 0);
+        return syllables.length === 2 && syllables.every(syllable => syllable.length > 0);
     }
     
     /**
