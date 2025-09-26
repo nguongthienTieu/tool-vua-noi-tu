@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vua nối từ Beng</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header with title and controls -->
+        <header class="app-header">
+            <h1>Vua nối từ Beng</h1>
+            <select id="languageSelect" class="language-select">
+                <option value="vietnamese">🇻🇳 Tiếng Việt</option>
+                <option value="english">🇺🇸 English</option>
+            </select>
+        </header>
+
+        <!-- Stats display -->
+        <section class="stats-section">
+            <div class="stats-grid">
+                <div class="stats-row">
+                    <div class="word-counts">
+                        <div class="stat-item">
+                            <span class="stat-label">Tổng từ</span>
+                            <span id="totalWords" class="stat-value">-</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Từ người dùng</span>
+                            <span id="userWords" class="stat-value">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tab navigation -->
+        <nav class="tab-nav">
+            <button class="tab-btn active" data-tab="find-tab">🔍 Tìm từ</button>
+            <button class="tab-btn" data-tab="validate-tab">✅ Kiểm tra</button>
+            <button class="tab-btn" data-tab="manage-tab">⚙️ Quản lý</button>
+        </nav>
+
+        <!-- Main content area -->
+        <main class="tab-content">
+            <!-- Find words tab -->
+            <div id="find-tab" class="tab-panel active">
+                <div class="input-group">
+                    <input type="text" id="searchWord" placeholder="con voi, bánh mì, apple, cat">
+                </div>
+                <div class="button-group">
+                    <button id="findNextBtn" class="action-btn primary">Tìm từ theo sau</button>
+                    <button id="findPrevBtn" class="action-btn secondary">Tìm từ đứng trước</button>
+                </div>
+                <div id="searchResult" class="result-area"></div>
+                <div id="loadMoreContainer" class="load-more-container" style="display: none;">
+                    <button id="loadMoreBtn" class="load-more-btn">Tải thêm từ</button>
+                </div>
+            </div>
+
+            <!-- Validate word tab -->
+            <div id="validate-tab" class="tab-panel">
+                <div class="input-group">
+                    <input type="text" id="validateWord" placeholder="con voi, bánh mì, apple, cat">
+                </div>
+                <div class="button-group">
+                    <button id="validateWordBtn" class="action-btn">Kiểm tra từ</button>
+                </div>
+                <div id="validateResult" class="result-area"></div>
+                
+                <div class="validation-info">
+                    <h4>Thông tin kiểm tra:</h4>
+                    <ul>
+                        <li><strong>Tiếng Việt:</strong> Kiểm tra từ ghép 2 âm tiết và có trong từ điển</li>
+                        <li><strong>English:</strong> Kiểm tra từ đơn chỉ chứa chữ cái và có trong từ điển</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Word management tab -->
+            <div id="manage-tab" class="tab-panel">
+                <div class="input-group">
+                    <label for="newWords">Từ mới (cách nhau bằng dấu phẩy):</label>
+                    <textarea id="newWords" placeholder="con voi, bánh mì, apple, cat"></textarea>
+                </div>
+                <div class="button-group">
+                    <button id="addWordsBtn" class="action-btn primary">Thêm từ</button>
+                    <button id="removeWordsBtn" class="action-btn danger">Xóa từ</button>
+                </div>
+                <div id="manageResult" class="result-area"></div>
+                
+                <div class="user-words-section">
+                    <h4>Từ đã thêm:</h4>
+                    <div id="userWordsList" class="user-words-list">
+                        <p style="color: #666; font-size: 11px;">Đang tải...</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <button id="showExamplesBtn" class="example-btn">Hiển thị từ mẫu</button>
+            <div id="examplesArea" class="examples-area" style="display: none;"></div>
+        </footer>
+    </div>
+    
+    <script src="dictionary-data.js"></script>
+    <script src="wordchain-core.js"></script>
+    <script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Chain Helper - Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            margin: 5px;
+            padding: 8px 15px;
+            cursor: pointer;
+        }
+        .result {
+            margin: 10px 0;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Word Chain Helper - Test Page</h1>
+    
+    <div class="test-section">
+        <h3>Dictionary Loading Test</h3>
+        <button onclick="testDictionaries()">Test Dictionary Loading</button>
+        <div id="dictTest" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Word Chain Test</h3>
+        <input type="text" id="testWord" placeholder="con voi" value="con voi">
+        <button onclick="testWordChain()">Test Find Next Words</button>
+        <div id="chainTest" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Language Switch Test</h3>
+        <button onclick="switchToEnglish()">Switch to English</button>
+        <button onclick="switchToVietnamese()">Switch to Vietnamese</button>
+        <div id="langTest" class="result"></div>
+    </div>
+
+    <script src="dictionary-data.js"></script>
+    <script src="wordchain-core.js"></script>
+    <script>
+        let helper;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            helper = new WordChainHelper('vietnamese');
+            await helper.initializeDictionaries();
+            console.log('Helper initialized');
+        });
+
+        function testDictionaries() {
+            const result = document.getElementById('dictTest');
+            if (!helper) {
+                result.innerHTML = 'Helper not initialized yet!';
+                return;
+            }
+
+            const stats = helper.getStats();
+            result.innerHTML = `
+                <strong>Dictionary Stats:</strong><br>
+                Total Words: ${stats.totalWords}<br>
+                Dead Words: ${stats.deadWords}<br>
+                Current Language: ${stats.currentLanguage}<br>
+                User Added: ${stats.userAddedWords}
+            `;
+        }
+
+        function testWordChain() {
+            const result = document.getElementById('chainTest');
+            const testWord = document.getElementById('testWord').value.trim();
+            
+            if (!helper || !testWord) {
+                result.innerHTML = 'Please enter a word and ensure helper is initialized!';
+                return;
+            }
+
+            const nextWords = helper.findNextWords(testWord, 5);
+            const prevWords = helper.findPreviousWords(testWord, 5);
+
+            result.innerHTML = `
+                <strong>Testing word: "${testWord}"</strong><br>
+                Next words (${nextWords.length}): ${nextWords.join(', ')}<br>
+                Previous words (${prevWords.length}): ${prevWords.join(', ')}<br>
+                Word exists: ${helper.hasWord(testWord)}
+            `;
+        }
+
+        async function switchToEnglish() {
+            if (!helper) return;
+            await helper.setLanguage('english');
+            document.getElementById('testWord').value = 'cat';
+            document.getElementById('langTest').innerHTML = 'Switched to English! Stats: ' + JSON.stringify(helper.getStats());
+        }
+
+        async function switchToVietnamese() {
+            if (!helper) return;
+            await helper.setLanguage('vietnamese');
+            document.getElementById('testWord').value = 'con voi';
+            document.getElementById('langTest').innerHTML = 'Switched to Vietnamese! Stats: ' + JSON.stringify(helper.getStats());
+        }
+    </script>
+</body>
+</html>
