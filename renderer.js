@@ -471,7 +471,7 @@ class WordChainApp {
 
     createWordList(words) {
         return `<div class="word-list">${words.map(word => 
-            `<span class="word-item" title="Nhấp để sao chép">${word}</span>`
+            `<span class="word-item" data-word="${word}" title="Nhấp để sao chép">${word}</span>`
         ).join('')}</div>`;
     }
 
@@ -481,7 +481,7 @@ class WordChainApp {
             const isDead = item.isDead || false;
             const deadClass = isDead ? ' dead-word' : '';
             const deadIcon = isDead ? '💀 ' : '';
-            return `<span class="word-item${deadClass}" title="${isDead ? 'Từ kết thúc - ' : ''}Nhấp để sao chép">${deadIcon}${word}</span>`;
+            return `<span class="word-item${deadClass}" data-word="${word}" title="${isDead ? 'Từ kết thúc - ' : ''}Nhấp để sao chép">${deadIcon}${word}</span>`;
         }).join('')}</div>`;
     }
 
@@ -563,7 +563,9 @@ class WordChainApp {
         // Add click-to-copy functionality for word items
         element.querySelectorAll('.word-item').forEach(item => {
             item.addEventListener('click', () => {
-                navigator.clipboard.writeText(item.textContent);
+                // Use data-word attribute to get clean word text without emojis
+                const wordToCopy = item.getAttribute('data-word') || item.textContent;
+                navigator.clipboard.writeText(wordToCopy);
                 const originalText = item.textContent;
                 item.textContent = '✓ Đã sao chép';
                 setTimeout(() => {
