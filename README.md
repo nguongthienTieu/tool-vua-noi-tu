@@ -10,8 +10,9 @@
 ### ✨ Tính năng chính
 - **🔍 Tìm từ**: Tìm từ có thể nối trước/sau từ đã cho
 - **⚙️ Quản lý từ**: Thêm từ mới vào từ điển cá nhân
-- **🌐 Đa ngôn ngữ**: Hỗ trợ tiếng Việt (68,900+ từ) và tiếng Anh (274,900+ từ)
+- **🌐 Đa ngôn ngữ**: Hỗ trợ tiếng Việt (52,200+ từ ghép 2 âm tiết) và tiếng Anh (274,900+ từ)
 - **💡 Thông minh**: Nối theo âm tiết (tiếng Việt) hoặc chữ cái (tiếng Anh)
+- **🎯 Chuẩn xác**: Chỉ sử dụng từ ghép có đúng 2 âm tiết cho tiếng Việt
 
 ### 🚀 Cài đặt và Sử dụng
 ```bash
@@ -33,6 +34,8 @@ npm test
 2. **Quản lý từ**: Thêm từ mới vào từ điển (cách nhau bằng dấu phẩy)
 3. **Chuyển ngôn ngữ**: Sử dụng dropdown để chuyển giữa tiếng Việt và tiếng Anh
 
+**⚠️ Lưu ý về tiếng Việt**: Ứng dụng chỉ sử dụng từ ghép có đúng 2 âm tiết (VD: "con voi", "bánh mì", "hoa đào"). Từ có 1 âm tiết hoặc hơn 2 âm tiết sẽ không được chấp nhận.
+
 ---
 
 ## English 🇺🇸
@@ -42,8 +45,9 @@ npm test
 ### ✨ Key Features
 - **🔍 Word Search**: Find words that can be chained before/after given words
 - **⚙️ Word Management**: Add custom words to personal dictionary
-- **🌐 Multi-language**: Vietnamese (68,900+ words) and English (274,900+ words) support
+- **🌐 Multi-language**: Vietnamese (52,200+ 2-syllable compound words) and English (274,900+ words) support
 - **💡 Smart Chaining**: Syllable-based (Vietnamese) or letter-based (English)
+- **🎯 Precise**: Only uses 2-syllable compound words for Vietnamese
 
 ### 🚀 Installation and Usage
 ```bash
@@ -64,6 +68,8 @@ npm test
 1. **Word Search**: Enter a word, select "Find Next Words" or "Find Previous Words"
 2. **Word Management**: Add new words to dictionary (separate with commas)
 3. **Language Switch**: Use dropdown to switch between Vietnamese and English
+
+**⚠️ Vietnamese Note**: The application only accepts 2-syllable compound words for Vietnamese (e.g., "con voi", "bánh mì", "hoa đào"). Words with 1 syllable or more than 2 syllables will be rejected.
 
 ---
 
