@@ -951,10 +951,11 @@ class WordChainHelper {
             if (this.language === 'english') {
                 this.addWords(englishDict.getAllWords());
             } else {
-                this.addWords(vietnameseDict.getAllWords());
-                this.addWords(hongocducDict.getAllWords());
-                this.addWords(tudientvDict.getAllWords());
-                this.addWords(wiktionaryDict.getAllWords());
+                // Vietnamese: Only load 2-syllable words
+                this.addWords(this.filterTwoSyllableWords(vietnameseDict.getAllWords()));
+                this.addWords(this.filterTwoSyllableWords(hongocducDict.getAllWords()));
+                this.addWords(this.filterTwoSyllableWords(tudientvDict.getAllWords()));
+                this.addWords(this.filterTwoSyllableWords(wiktionaryDict.getAllWords()));
             }
             
             // Re-add user words for all languages to preserve cross-language functionality
