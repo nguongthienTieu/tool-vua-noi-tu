@@ -41,6 +41,16 @@ class WordChainApp {
         this.setupEventListeners();
         await this.loadStats();
         await this.loadUserWords();
+        
+        // Set initial placeholders based on current language
+        try {
+            const currentLanguage = await window.electronAPI.getLanguage();
+            this.updatePlaceholders(currentLanguage);
+        } catch (error) {
+            console.error('Error getting initial language for placeholders:', error);
+            // Default to Vietnamese if error
+            this.updatePlaceholders('vietnamese');
+        }
     }
 
     setupEventListeners() {
@@ -535,12 +545,15 @@ class WordChainApp {
                 paginationControls.style.display = 'none';
             }
             
-            // Clear all input fields
+            // Clear all input fields and update placeholders
             const inputs = ['findWord', 'newWords'];
             inputs.forEach(id => {
                 const input = document.getElementById(id);
                 if (input) input.value = '';
             });
+            
+            // Update placeholder text based on selected language
+            this.updatePlaceholders(selectedLanguage);
 
             // Clear all result areas
             const results = ['findResult', 'addResult'];
@@ -568,6 +581,27 @@ class WordChainApp {
                 'success');
         } catch (error) {
             this.showResult(document.querySelector('.result-area'), 'Lỗi khi chuyển ngôn ngữ', 'error');
+        }
+    }
+
+    updatePlaceholders(language) {
+        const findWordInput = getFindWordInput();
+        const newWordsInput = getNewWordsInput();
+        
+        if (language === 'vietnamese') {
+            if (findWordInput) {
+                findWordInput.placeholder = 'con voi, bánh mì, hoa hồng';
+            }
+            if (newWordsInput) {
+                newWordsInput.placeholder = 'hạnh phúc, phúc lợi, lợi ích';
+            }
+        } else if (language === 'english') {
+            if (findWordInput) {
+                findWordInput.placeholder = 'cat, dog, apple';
+            }
+            if (newWordsInput) {
+                newWordsInput.placeholder = 'apple, orange, happy';
+            }
         }
     }
 
