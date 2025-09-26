@@ -151,8 +151,8 @@ class WordChainApp {
         
         if (examplesArea.style.display === 'none') {
             try {
-                const examples = await window.electronAPI.getRandomWords(20);
-                examplesArea.innerHTML = this.createWordList(examples);
+                const examples = await window.electronAPI.getRandomWords(15);
+                examplesArea.innerHTML = this.createSeparatedExamplesList(examples);
                 examplesArea.style.display = 'block';
                 showExamplesBtn.textContent = 'Ẩn từ mẫu';
             } catch (error) {
@@ -483,6 +483,35 @@ class WordChainApp {
             const deadIcon = isDead ? '💀 ' : '';
             return `<span class="word-item${deadClass}" title="${isDead ? 'Từ kết thúc - ' : ''}Nhấp để sao chép">${deadIcon}${word}</span>`;
         }).join('')}</div>`;
+    }
+
+    createSeparatedExamplesList(examples) {
+        if (!examples || (!examples.vietnamese && !examples.english)) {
+            return '<div class="examples-error">Không có từ mẫu</div>';
+        }
+
+        const vietnameseSection = examples.vietnamese && examples.vietnamese.length > 0 
+            ? `<div class="language-examples-section">
+                <h4 style="margin: 8px 0; color: #2c3e50; font-size: 14px; display: flex; align-items: center;">
+                    🇻🇳 Tiếng Việt (${examples.vietnamese.length} từ):
+                </h4>
+                ${this.createWordList(examples.vietnamese)}
+            </div>` 
+            : '';
+
+        const englishSection = examples.english && examples.english.length > 0 
+            ? `<div class="language-examples-section">
+                <h4 style="margin: 8px 0; color: #2c3e50; font-size: 14px; display: flex; align-items: center;">
+                    🇺🇸 English (${examples.english.length} words):
+                </h4>
+                ${this.createWordList(examples.english)}
+            </div>` 
+            : '';
+
+        return `<div class="separated-examples">
+            ${vietnameseSection}
+            ${englishSection}
+        </div>`;
     }
 
     async changeLanguage() {
