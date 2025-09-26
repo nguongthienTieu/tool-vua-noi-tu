@@ -349,17 +349,6 @@ class WordChainApp {
             paginationControls.style.display = 'none';
         }
     }
-            } else {
-                const message = direction === 'next' 
-                    ? `Không tìm thấy từ nào có thể theo sau "${word}"`
-                    : `Không tìm thấy từ nào có thể đứng trước "${word}"`;
-                
-                this.showResult(findResult, message, 'info');
-            }
-        } catch (error) {
-            this.showResult(findResult, 'Lỗi khi tìm kiếm từ', 'error');
-        }
-    }
 
     async addWords() {
         const newWordsInput = getNewWordsInput();
