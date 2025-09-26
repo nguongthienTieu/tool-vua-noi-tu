@@ -1,7 +1,7 @@
 {
   "name": "word-chain-helper",
   "version": "2.0.0",
-  "description": "Goat nối từ Beng - Ứng dụng desktop hỗ trợ trò chơi từ ghép tiếng Việt sử dụng nguồn từ điển từ @undertheseanlp/dictionary với 120,000+ từ ghép tiếng Việt từ 4 nguồn dữ liệu.",
+  "description": "Goat nối từ Beng - Ứng dụng desktop hỗ trợ trò chơi từ ghép tiếng Việt sử dụng từ điển với 52,200+ từ ghép 2 âm tiết từ 4 nguồn dữ liệu (@undertheseanlp/dictionary, HongocDuc, TudienTV, Wiktionary).",
   "main": "main.js",
   "scripts": {
     "start": "electron .",

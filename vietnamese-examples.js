@@ -57,7 +57,8 @@ console.log('----------------------');
 function findLongestVietnameseChain(startWord, usedWords = new Set()) {
     usedWords.add(startWord.toLowerCase());
     const nextWords = helper.findNextWords(startWord)
-        .filter(word => !usedWords.has(word));
+        .map(result => typeof result === 'string' ? result : result.word)
+        .filter(word => !usedWords.has(word.toLowerCase()));
     
     if (nextWords.length === 0) {
         return [startWord];

@@ -27,11 +27,12 @@ class WordChainHelper {
             this.addWords(englishDict.getAllWords());
         } else {
             // Default to Vietnamese - Load Vietnamese dictionaries
+            // Only load 2-syllable words for Vietnamese
             this.language = 'vietnamese';
-            this.addWords(vietnameseDict.getAllWords());
-            this.addWords(hongocducDict.getAllWords());
-            this.addWords(tudientvDict.getAllWords());
-            this.addWords(wiktionaryDict.getAllWords());
+            this.addWords(this.filterTwoSyllableWords(vietnameseDict.getAllWords()));
+            this.addWords(this.filterTwoSyllableWords(hongocducDict.getAllWords()));
+            this.addWords(this.filterTwoSyllableWords(tudientvDict.getAllWords()));
+            this.addWords(this.filterTwoSyllableWords(wiktionaryDict.getAllWords()));
         }
         
         // Tải từ do người dùng thêm vào từ file
@@ -94,6 +95,23 @@ class WordChainHelper {
         // Vietnamese: Accept words with exactly 2 syllables
         const syllables = this.extractSyllables(word);
         return syllables.length === 2 && syllables.every(syllable => syllable.length > 0);
+    }
+    
+    /**
+     * Filter words to only include those with exactly 2 syllables for Vietnamese
+     * @param {string[]} wordList - List of words to filter
+     * @returns {string[]} Filtered list containing only 2-syllable words
+     */
+    filterTwoSyllableWords(wordList) {
+        if (this.language !== 'vietnamese') {
+            return wordList; // No filtering for non-Vietnamese languages
+        }
+        
+        return wordList.filter(word => {
+            if (!word || typeof word !== 'string') return false;
+            const syllables = this.extractSyllables(word);
+            return syllables.length === 2 && syllables.every(syllable => syllable.length > 0);
+        });
     }
     
     /**
