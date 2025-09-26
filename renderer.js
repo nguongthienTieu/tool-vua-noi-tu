@@ -16,6 +16,11 @@ const getFindNextBtn = () => document.getElementById('findNextBtn');
 const getFindPrevBtn = () => document.getElementById('findPrevBtn');
 const getFindResult = () => document.getElementById('findResult');
 
+// Validate tab elements
+const getValidateWordInput = () => document.getElementById('validateWord');
+const getValidateWordBtn = () => document.getElementById('validateWordBtn');
+const getValidateResult = () => document.getElementById('validateResult');
+
 // Manage words tab elements
 const getNewWordsInput = () => document.getElementById('newWords');
 const getAddWordsBtn = () => document.getElementById('addWordsBtn');
@@ -92,6 +97,19 @@ class WordChainApp {
         const languageSelect = getLanguageSelect();
         if (languageSelect) {
             languageSelect.addEventListener('change', () => this.changeLanguage());
+        }
+
+        // Validate functionality
+        const validateWordBtn = getValidateWordBtn();
+        const validateWordInput = getValidateWordInput();
+        
+        if (validateWordBtn) {
+            validateWordBtn.addEventListener('click', () => this.validateWord());
+        }
+        if (validateWordInput) {
+            validateWordInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') this.validateWord();
+            });
         }
 
         // Manage words
@@ -449,6 +467,66 @@ class WordChainApp {
             }
         } catch (error) {
             this.showResult(addResult, 'Lỗi khi xóa từ', 'error');
+        }
+    }
+
+    async validateWord() {
+        const validateWordInput = getValidateWordInput();
+        const validateResult = getValidateResult();
+        
+        if (!validateWordInput || !validateResult) return;
+        
+        const word = validateWordInput.value.trim();
+
+        if (!word) {
+            this.showResult(validateResult, 'Vui lòng nhập từ cần kiểm tra', 'error');
+            return;
+        }
+
+        try {
+            const result = await window.electronAPI.validateWordComplete(word);
+            
+            // Create detailed validation result
+            let resultHTML = `
+                <div class="validation-result">
+                    <h4>Kết quả kiểm tra cho "${result.word}":</h4>
+                    <p class="validation-message">${result.message}</p>
+                    <div class="validation-details">
+                        <div class="validation-item">
+                            <span class="validation-label">Định dạng hợp lệ:</span>
+                            <span class="validation-status ${result.isValid ? 'valid' : 'invalid'}">
+                                ${result.isValid ? '✅ Có' : '❌ Không'}
+                            </span>
+                        </div>
+                        <div class="validation-item">
+                            <span class="validation-label">Có trong từ điển:</span>
+                            <span class="validation-status ${result.inDictionary ? 'valid' : 'invalid'}">
+                                ${result.inDictionary ? '✅ Có' : '❌ Không'}
+                            </span>
+                        </div>
+                        <div class="validation-item">
+                            <span class="validation-label">Ngôn ngữ hiện tại:</span>
+                            <span class="validation-info">${result.language === 'vietnamese' ? 'Tiếng Việt' : 'English'}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Determine result type for styling
+            let resultType = 'success';
+            if (result.isValid && result.inDictionary) {
+                resultType = 'success';
+            } else if (result.isValid || result.inDictionary) {
+                resultType = 'warning';
+            } else {
+                resultType = 'error';
+            }
+            
+            this.showResult(validateResult, resultHTML, resultType);
+            
+        } catch (error) {
+            console.error('Lỗi khi kiểm tra từ:', error);
+            this.showResult(validateResult, 'Lỗi khi kiểm tra từ', 'error');
         }
     }
 

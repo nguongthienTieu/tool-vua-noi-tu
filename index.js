@@ -1060,6 +1060,49 @@ class WordChainHelper {
         const normalizedWord = word.toLowerCase().trim();
         return this.words.has(normalizedWord);
     }
+
+    /**
+     * Kiểm tra tổng hợp từ: cả tính hợp lệ và có trong từ điển
+     * @param {string} word - Từ cần kiểm tra
+     * @returns {object} Kết quả kiểm tra với thông tin chi tiết
+     */
+    validateWordComplete(word) {
+        if (!word || typeof word !== 'string') {
+            return {
+                isValid: false,
+                inDictionary: false,
+                message: 'Từ không hợp lệ (rỗng hoặc không phải chuỗi)',
+                word: word || ''
+            };
+        }
+
+        const normalizedWord = word.toLowerCase().trim();
+        const isValid = this.isValidCompoundWord(normalizedWord);
+        const inDictionary = this.words.has(normalizedWord);
+
+        let message = '';
+        if (isValid && inDictionary) {
+            message = '✅ Từ hợp lệ và có trong từ điển';
+        } else if (isValid && !inDictionary) {
+            message = '⚠️ Từ hợp lệ nhưng không có trong từ điển';
+        } else if (!isValid && inDictionary) {
+            if (this.language === 'vietnamese') {
+                message = '❌ Từ có trong từ điển nhưng không phải từ ghép 2 âm tiết';
+            } else {
+                message = '❌ Từ có trong từ điển nhưng định dạng không hợp lệ';
+            }
+        } else {
+            message = '❌ Từ không hợp lệ và không có trong từ điển';
+        }
+
+        return {
+            isValid,
+            inDictionary,
+            message,
+            word: normalizedWord,
+            language: this.language
+        };
+    }
 }
 
 // Export the class for use in other modules

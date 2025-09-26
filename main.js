@@ -107,6 +107,10 @@ class ElectronWordChainApp {
             return this.wordChainHelper.isValidCompoundWord(word);
         });
 
+        ipcMain.handle('validate-word-complete', async (event, word) => {
+            return this.wordChainHelper.validateWordComplete(word);
+        });
+
         ipcMain.handle('get-stats', async (event) => {
             return this.wordChainHelper.getStats();
         });
