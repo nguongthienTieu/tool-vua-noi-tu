@@ -333,19 +333,9 @@ class WordChainApp {
 
     updatePaginationControls(hasMore) {
         const paginationControls = getPaginationControls();
-        const loadMoreNextBtn = getLoadMoreNextBtn();
-        const loadMorePrevBtn = getLoadMorePrevBtn();
         
-        if (paginationControls && hasMore) {
-            paginationControls.style.display = 'grid';
-            
-            if (loadMoreNextBtn) {
-                loadMoreNextBtn.style.display = this.currentDirection === 'next' ? 'block' : 'none';
-            }
-            if (loadMorePrevBtn) {
-                loadMorePrevBtn.style.display = this.currentDirection === 'prev' ? 'block' : 'none';
-            }
-        } else if (paginationControls) {
+        // Always hide pagination controls for English as requested
+        if (paginationControls) {
             paginationControls.style.display = 'none';
         }
     }
@@ -454,14 +444,24 @@ class WordChainApp {
 
     async loadUserWords() {
         try {
+            const currentLanguage = await window.electronAPI.getLanguage();
             const userWords = await window.electronAPI.getUserWords();
             const userWordsList = getUserWordsList();
+            
             if (userWordsList) {
                 if (userWords.length > 0) {
+                    const languageLabel = currentLanguage === 'vietnamese' ? 'Tiếng Việt' : 'English';
                     const wordList = this.createWordList(userWords);
-                    userWordsList.innerHTML = wordList;
+                    userWordsList.innerHTML = `
+                        <div class="user-words-language-section">
+                            <h4 style="margin: 0 0 8px 0; color: #333; font-size: 12px;">${languageLabel}:</h4>
+                            ${wordList}
+                        </div>
+                    `;
                 } else {
-                    userWordsList.innerHTML = '<p style="color: #666; font-size: 11px; margin: 0;">Chưa có từ nào được thêm bởi người dùng.</p>';
+                    const currentLanguage = await window.electronAPI.getLanguage();
+                    const languageLabel = currentLanguage === 'vietnamese' ? 'tiếng Việt' : 'tiếng Anh';
+                    userWordsList.innerHTML = `<p style="color: #666; font-size: 11px; margin: 0;">Chưa có từ ${languageLabel} nào được thêm bởi người dùng.</p>`;
                 }
             }
         } catch (error) {
