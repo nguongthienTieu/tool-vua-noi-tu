@@ -418,7 +418,7 @@ body {
 }
 
 .word-item.dead-word::after {
-    content: " 💀";
+    content: "";
     font-size: 9px;
     margin-left: 2px;
 }

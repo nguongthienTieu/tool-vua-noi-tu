@@ -300,7 +300,7 @@ class WordChainApp {
         
         // Show dead words count if any
         const deadCount = words.filter(item => item.isDead).length;
-        const deadInfo = deadCount > 0 ? `<p style="margin: 4px 0; font-size: 11px; color: #856404;">💀 ${deadCount} từ "kết thúc" (có thể kết thúc trò chơi)</p>` : '';
+        const deadInfo = deadCount > 0 ? `<p style="margin: 4px 0; font-size: 11px; color: #856404;">${deadCount} từ "kết thúc" (có thể kết thúc trò chơi)</p>` : '';
         
         this.showResult(findResult, `<p style="margin-bottom: 8px;">${title}</p>${deadInfo}${wordList}`, 'success');
         
@@ -480,8 +480,7 @@ class WordChainApp {
             const word = item.word || item;
             const isDead = item.isDead || false;
             const deadClass = isDead ? ' dead-word' : '';
-            const deadIcon = isDead ? '💀 ' : '';
-            return `<span class="word-item${deadClass}" data-word="${word}" title="${isDead ? 'Từ kết thúc - ' : ''}Nhấp để sao chép">${deadIcon}${word}</span>`;
+            return `<span class="word-item${deadClass}" data-word="${word}" title="${isDead ? 'Từ kết thúc - ' : ''}Nhấp để sao chép">${word}</span>`;
         }).join('')}</div>`;
     }
 
@@ -490,28 +489,30 @@ class WordChainApp {
             return '<div class="examples-error">Không có từ mẫu</div>';
         }
 
-        const vietnameseSection = examples.vietnamese && examples.vietnamese.length > 0 
-            ? `<div class="language-examples-section">
-                <h4 style="margin: 8px 0; color: #2c3e50; font-size: 14px; display: flex; align-items: center;">
-                    🇻🇳 Tiếng Việt (${examples.vietnamese.length} từ):
-                </h4>
-                ${this.createWordList(examples.vietnamese)}
-            </div>` 
-            : '';
-
-        const englishSection = examples.english && examples.english.length > 0 
-            ? `<div class="language-examples-section">
-                <h4 style="margin: 8px 0; color: #2c3e50; font-size: 14px; display: flex; align-items: center;">
-                    🇺🇸 English (${examples.english.length} words):
-                </h4>
-                ${this.createWordList(examples.english)}
-            </div>` 
-            : '';
-
-        return `<div class="separated-examples">
-            ${vietnameseSection}
-            ${englishSection}
-        </div>`;
+        const currentLanguage = examples.currentLanguage;
+        
+        // Only show examples for the current language
+        if (currentLanguage === 'vietnamese' && examples.vietnamese && examples.vietnamese.length > 0) {
+            return `<div class="separated-examples">
+                <div class="language-examples-section">
+                    <h4 style="margin: 8px 0; color: #2c3e50; font-size: 14px; display: flex; align-items: center;">
+                        🇻🇳 Tiếng Việt (${examples.vietnamese.length} từ):
+                    </h4>
+                    ${this.createWordList(examples.vietnamese)}
+                </div>
+            </div>`;
+        } else if (currentLanguage === 'english' && examples.english && examples.english.length > 0) {
+            return `<div class="separated-examples">
+                <div class="language-examples-section">
+                    <h4 style="margin: 8px 0; color: #2c3e50; font-size: 14px; display: flex; align-items: center;">
+                        🇺🇸 English (${examples.english.length} words):
+                    </h4>
+                    ${this.createWordList(examples.english)}
+                </div>
+            </div>`;
+        } else {
+            return '<div class="examples-error">Không có từ mẫu cho ngôn ngữ hiện tại</div>';
+        }
     }
 
     async changeLanguage() {
@@ -547,6 +548,20 @@ class WordChainApp {
                 const result = document.getElementById(id);
                 if (result) result.innerHTML = '';
             });
+
+            // Refresh examples if they are currently visible
+            const examplesArea = getExamplesArea();
+            if (examplesArea && examplesArea.style.display !== 'none') {
+                try {
+                    const examples = await window.electronAPI.getRandomWords(15);
+                    examplesArea.innerHTML = this.createSeparatedExamplesList(examples);
+                } catch (error) {
+                    console.error('Lỗi khi cập nhật từ mẫu sau khi chuyển ngôn ngữ:', error);
+                }
+            }
+            
+            // Refresh user words list for current language
+            await this.loadUserWords();
 
             this.showResult(document.querySelector('.result-area'), 
                 `✅ Đã chuyển sang ${selectedLanguage === 'vietnamese' ? 'tiếng Việt' : 'tiếng Anh'}`, 
