@@ -8,6 +8,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
     findNextWords: (word) => ipcRenderer.invoke('find-next-words', word),
     findNextWordsEnhanced: (word) => ipcRenderer.invoke('find-next-words-enhanced', word),
     findPreviousWords: (word) => ipcRenderer.invoke('find-previous-words', word),
+    
+    // Paginated word finding
+    findNextWordsPaginated: (word, maxResults, excludeWords) => ipcRenderer.invoke('find-next-words-paginated', word, maxResults, excludeWords),
+    findPreviousWordsPaginated: (word, maxResults, excludeWords) => ipcRenderer.invoke('find-previous-words-paginated', word, maxResults, excludeWords),
     validateChain: (chain) => ipcRenderer.invoke('validate-chain', chain),
     generateWordChains: (word, maxChains, maxLength) => ipcRenderer.invoke('generate-word-chains', word, maxChains, maxLength),
     findChainsToDeadWords: (word, maxChains, maxLength) => ipcRenderer.invoke('find-chains-to-dead-words', word, maxChains, maxLength),

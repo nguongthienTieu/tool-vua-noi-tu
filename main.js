@@ -65,6 +65,15 @@ class ElectronWordChainApp {
             return this.wordChainHelper.findNextWords(word, true, false); // Return enhanced format with dead word info
         });
 
+        // New paginated handlers
+        ipcMain.handle('find-next-words-paginated', async (event, word, maxResults, excludeWords = []) => {
+            return this.wordChainHelper.findNextWordsPaginated(word, maxResults, excludeWords);
+        });
+
+        ipcMain.handle('find-previous-words-paginated', async (event, word, maxResults, excludeWords = []) => {
+            return this.wordChainHelper.findPreviousWordsPaginated(word, maxResults, excludeWords);
+        });
+
         ipcMain.handle('find-previous-words', async (event, word) => {
             return this.wordChainHelper.findPreviousWords(word);
         });

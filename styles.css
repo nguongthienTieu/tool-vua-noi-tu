@@ -287,6 +287,20 @@ body {
     margin-bottom: 0;
 }
 
+/* Pagination controls */
+.pagination-controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.pagination-controls .action-btn {
+    font-size: 10px;
+    padding: 6px 12px;
+    margin-bottom: 0;
+}
+
 /* Results area */
 .result-area {
     background: white;
