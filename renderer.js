@@ -23,9 +23,17 @@ const getRemoveWordsBtn = () => document.getElementById('removeWordsBtn');
 const getAddResult = () => document.getElementById('addResult');
 const getUserWordsList = () => document.getElementById('userWordsList');
 
+// Pagination elements
+const getPaginationControls = () => document.getElementById('paginationControls');
+const getLoadMoreNextBtn = () => document.getElementById('loadMoreNextBtn');
+const getLoadMorePrevBtn = () => document.getElementById('loadMorePrevBtn');
+
 class WordChainApp {
     constructor() {
         this.isPinned = true; // Start pinned by default
+        this.currentSearchWord = '';
+        this.currentDirection = null; // 'next' or 'prev'
+        this.shownWords = []; // Keep track of shown words for pagination
         this.init();
     }
 
@@ -91,6 +99,17 @@ class WordChainApp {
             newWordsInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter' && e.ctrlKey) this.addWords();
             });
+        }
+
+        // Pagination controls
+        const loadMoreNextBtn = getLoadMoreNextBtn();
+        const loadMorePrevBtn = getLoadMorePrevBtn();
+        
+        if (loadMoreNextBtn) {
+            loadMoreNextBtn.addEventListener('click', () => this.loadMoreWords('next'));
+        }
+        if (loadMorePrevBtn) {
+            loadMorePrevBtn.addEventListener('click', () => this.loadMoreWords('prev'));
         }
     }
 
@@ -175,30 +194,161 @@ class WordChainApp {
             return;
         }
 
+        // Reset pagination state for new searches
+        this.currentSearchWord = word;
+        this.currentDirection = direction;
+        this.shownWords = [];
+
+        // Hide pagination controls initially
+        const paginationControls = getPaginationControls();
+        if (paginationControls) {
+            paginationControls.style.display = 'none';
+        }
+
         try {
-            let words;
-            if (direction === 'next') {
-                // Get enhanced format for next words with dead word detection
-                words = await window.electronAPI.findNextWordsEnhanced(word);
+            // Check language to determine if we need pagination
+            const currentLanguage = await window.electronAPI.getLanguage();
+            const isEnglish = currentLanguage === 'english';
+            
+            let result;
+            if (isEnglish) {
+                // Use paginated search for English
+                if (direction === 'next') {
+                    result = await window.electronAPI.findNextWordsPaginated(word, 10, []);
+                } else {
+                    result = await window.electronAPI.findPreviousWordsPaginated(word, 10, []);
+                }
+                
+                if (result.words && result.words.length > 0) {
+                    const words = Array.isArray(result.words[0]) || typeof result.words[0] === 'string' 
+                        ? result.words.map(w => typeof w === 'string' ? { word: w, isDead: false } : w)
+                        : result.words;
+                    
+                    this.shownWords = words.map(w => w.word || w);
+                    this.displayWordResults(direction, word, words, result.hasMore);
+                } else {
+                    this.displayNoResults(direction, word);
+                }
             } else {
-                // Previous words still use simple format
-                words = await window.electronAPI.findPreviousWords(word);
-                words = words.map(word => ({ word, isDead: false })); // Convert to enhanced format
+                // Use traditional search for Vietnamese
+                let words;
+                if (direction === 'next') {
+                    words = await window.electronAPI.findNextWordsEnhanced(word);
+                } else {
+                    words = await window.electronAPI.findPreviousWords(word);
+                    words = words.map(word => ({ word, isDead: false }));
+                }
+
+                if (words.length > 0) {
+                    // For Vietnamese, show all results but limit display to 15
+                    const displayWords = words.slice(0, 15);
+                    this.shownWords = displayWords.map(w => w.word || w);
+                    this.displayWordResults(direction, word, displayWords, words.length > 15);
+                } else {
+                    this.displayNoResults(direction, word);
+                }
+            }
+        } catch (error) {
+            const findResult = getFindResult();
+            this.showResult(findResult, 'Lỗi khi tìm kiếm từ', 'error');
+        }
+    }
+
+    async loadMoreWords(direction) {
+        if (!this.currentSearchWord || this.currentDirection !== direction) return;
+
+        try {
+            const currentLanguage = await window.electronAPI.getLanguage();
+            const isEnglish = currentLanguage === 'english';
+            
+            if (!isEnglish) {
+                // Vietnamese doesn't need pagination, this shouldn't be called
+                return;
             }
 
-            if (words.length > 0) {
-                const title = direction === 'next' 
-                    ? `Các từ có thể theo sau "${word}":` 
-                    : `Các từ có thể đứng trước "${word}":`;
+            let result;
+            if (direction === 'next') {
+                result = await window.electronAPI.findNextWordsPaginated(this.currentSearchWord, 10, this.shownWords);
+            } else {
+                result = await window.electronAPI.findPreviousWordsPaginated(this.currentSearchWord, 10, this.shownWords);
+            }
+            
+            if (result.words && result.words.length > 0) {
+                const words = Array.isArray(result.words[0]) || typeof result.words[0] === 'string' 
+                    ? result.words.map(w => typeof w === 'string' ? { word: w, isDead: false } : w)
+                    : result.words;
                 
-                const wordList = this.createEnhancedWordList(words.slice(0, 15)); // Limit to 15 words
-                const moreText = words.length > 15 ? `<p style="margin-top: 8px; font-size: 10px; color: #666;">và ${words.length - 15} từ khác...</p>` : '';
+                // Add new words to shown list
+                const newWords = words.map(w => w.word || w);
+                this.shownWords.push(...newWords);
                 
-                // Show dead words count if any
-                const deadCount = words.filter(item => item.isDead).length;
-                const deadInfo = deadCount > 0 ? `<p style="margin: 4px 0; font-size: 11px; color: #856404;">💀 ${deadCount} từ "kết thúc" (có thể kết thúc trò chơi)</p>` : '';
-                
-                this.showResult(findResult, `<p style="margin-bottom: 8px;">${title}</p>${deadInfo}${wordList}${moreText}`, 'success');
+                // Append results to existing display
+                this.appendWordResults(words, result.hasMore);
+            }
+        } catch (error) {
+            console.error('Error loading more words:', error);
+        }
+    }
+
+    displayWordResults(direction, searchWord, words, hasMore) {
+        const findResult = getFindResult();
+        const title = direction === 'next' 
+            ? `Các từ có thể theo sau "${searchWord}":` 
+            : `Các từ có thể đứng trước "${searchWord}":`;
+        
+        const wordList = this.createEnhancedWordList(words);
+        
+        // Show dead words count if any
+        const deadCount = words.filter(item => item.isDead).length;
+        const deadInfo = deadCount > 0 ? `<p style="margin: 4px 0; font-size: 11px; color: #856404;">💀 ${deadCount} từ "kết thúc" (có thể kết thúc trò chơi)</p>` : '';
+        
+        this.showResult(findResult, `<p style="margin-bottom: 8px;">${title}</p>${deadInfo}${wordList}`, 'success');
+        
+        // Show pagination controls if there are more words
+        this.updatePaginationControls(hasMore);
+    }
+
+    appendWordResults(words, hasMore) {
+        const findResult = getFindResult();
+        const wordList = this.createEnhancedWordList(words);
+        
+        // Append new words to existing results
+        findResult.innerHTML += wordList;
+        
+        // Update pagination controls
+        this.updatePaginationControls(hasMore);
+        
+        // Re-attach click handlers
+        this.showResult(findResult, findResult.innerHTML, 'success');
+    }
+
+    displayNoResults(direction, searchWord) {
+        const findResult = getFindResult();
+        const message = direction === 'next' 
+            ? `Không tìm thấy từ nào có thể theo sau "${searchWord}"`
+            : `Không tìm thấy từ nào có thể đứng trước "${searchWord}"`;
+        
+        this.showResult(findResult, message, 'info');
+    }
+
+    updatePaginationControls(hasMore) {
+        const paginationControls = getPaginationControls();
+        const loadMoreNextBtn = getLoadMoreNextBtn();
+        const loadMorePrevBtn = getLoadMorePrevBtn();
+        
+        if (paginationControls && hasMore) {
+            paginationControls.style.display = 'grid';
+            
+            if (loadMoreNextBtn) {
+                loadMoreNextBtn.style.display = this.currentDirection === 'next' ? 'block' : 'none';
+            }
+            if (loadMorePrevBtn) {
+                loadMorePrevBtn.style.display = this.currentDirection === 'prev' ? 'block' : 'none';
+            }
+        } else if (paginationControls) {
+            paginationControls.style.display = 'none';
+        }
+    }
             } else {
                 const message = direction === 'next' 
                     ? `Không tìm thấy từ nào có thể theo sau "${word}"`
@@ -336,6 +486,16 @@ class WordChainApp {
         ).join('')}</div>`;
     }
 
+    createEnhancedWordList(words) {
+        return `<div class="word-list">${words.map(item => {
+            const word = item.word || item;
+            const isDead = item.isDead || false;
+            const deadClass = isDead ? ' dead-word' : '';
+            const deadIcon = isDead ? '💀 ' : '';
+            return `<span class="word-item${deadClass}" title="${isDead ? 'Từ kết thúc - ' : ''}Nhấp để sao chép">${deadIcon}${word}</span>`;
+        }).join('')}</div>`;
+    }
+
     async changeLanguage() {
         const languageSelect = getLanguageSelect();
         if (!languageSelect) return;
@@ -344,6 +504,17 @@ class WordChainApp {
         try {
             await window.electronAPI.setLanguage(selectedLanguage);
             await this.loadStats();
+            
+            // Clear pagination state
+            this.currentSearchWord = '';
+            this.currentDirection = null;
+            this.shownWords = [];
+            
+            // Hide pagination controls
+            const paginationControls = getPaginationControls();
+            if (paginationControls) {
+                paginationControls.style.display = 'none';
+            }
             
             // Clear all input fields
             const inputs = ['findWord', 'newWords'];

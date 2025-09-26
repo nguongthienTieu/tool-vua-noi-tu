@@ -218,9 +218,10 @@ class WordChainHelper {
      * @param {string} word - Từ hiện tại
      * @param {boolean} prioritizeDeadWords - Ưu tiên từ "kết thúc" lên đầu
      * @param {boolean} returnSimpleArray - Trả về mảng đơn giản thay vì objects với metadata
+     * @param {number} maxResults - Maximum number of results to return (for performance, especially English)
      * @returns {Array} Mảng các từ có thể theo sau
      */
-    findNextWords(word, prioritizeDeadWords = true, returnSimpleArray = false) {
+    findNextWords(word, prioritizeDeadWords = true, returnSimpleArray = false, maxResults = null) {
         if (!word || typeof word !== 'string') {
             return [];
         }
@@ -228,19 +229,45 @@ class WordChainHelper {
         const lastElement = this.getConnectingElement(word, true);
         const nextWords = [];
         const deadWords = [];
+        
+        // For English, set a reasonable limit to avoid performance issues
+        const isEnglish = this.language === 'english';
+        const limit = maxResults || (isEnglish ? 10 : null);
+        let count = 0;
 
-        this.words.forEach(candidateWord => {
+        // Convert to array for better performance with large dictionaries
+        const wordsArray = Array.from(this.words);
+        
+        // For English, shuffle the words to get random results
+        if (isEnglish && !maxResults) {
+            // Fisher-Yates shuffle for truly random results
+            for (let i = wordsArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [wordsArray[i], wordsArray[j]] = [wordsArray[j], wordsArray[i]];
+            }
+        }
+
+        for (const candidateWord of wordsArray) {
+            if (limit && count >= limit) break;
+            
             const firstElement = this.getConnectingElement(candidateWord, false);
             if (firstElement === lastElement && candidateWord !== word.toLowerCase().trim()) {
-                // Check if this word is a dead word (has no next words)
-                const hasNextWords = this.hasNextWords(candidateWord);
+                // For English, skip dead word checking to improve performance
+                let hasNextWords = true;
+                let isDead = false;
+                
+                if (!isEnglish) {
+                    // Only check for dead words in Vietnamese (smaller dictionary)
+                    hasNextWords = this.hasNextWords(candidateWord);
+                    isDead = !hasNextWords;
+                }
                 
                 const wordInfo = {
                     word: candidateWord,
-                    isDead: !hasNextWords
+                    isDead: isDead
                 };
                 
-                if (!hasNextWords) {
+                if (isDead) {
                     deadWords.push(wordInfo);
                 } else {
                     nextWords.push(wordInfo);
@@ -251,12 +278,16 @@ class WordChainHelper {
                     this.wordHistory.set(candidateWord, 0);
                 }
                 this.wordHistory.set(candidateWord, this.wordHistory.get(candidateWord) + 1);
+                
+                count++;
             }
-        });
+        }
 
-        // Sort both arrays alphabetically
-        nextWords.sort((a, b) => a.word.localeCompare(b.word));
-        deadWords.sort((a, b) => a.word.localeCompare(b.word));
+        // Sort both arrays alphabetically (except for English random results)
+        if (!isEnglish || maxResults) {
+            nextWords.sort((a, b) => a.word.localeCompare(b.word));
+            deadWords.sort((a, b) => a.word.localeCompare(b.word));
+        }
 
         let result;
         // Return dead words first if prioritizeDeadWords is true
@@ -300,24 +331,200 @@ class WordChainHelper {
     /**
      * Find all possible previous words that can come before the given word
      * @param {string} word - The current word
+     * @param {number} maxResults - Maximum number of results to return (for performance)
      * @returns {string[]} Array of possible previous words
      */
-    findPreviousWords(word) {
+    findPreviousWords(word, maxResults = null) {
         if (!word || typeof word !== 'string') {
             return [];
         }
 
         const firstElement = this.getConnectingElement(word, false);
         const previousWords = [];
+        
+        // For English, set a reasonable limit to avoid performance issues
+        const isEnglish = this.language === 'english';
+        const limit = maxResults || (isEnglish ? 10 : null);
+        let count = 0;
 
-        this.words.forEach(candidateWord => {
+        // Convert to array for better performance with large dictionaries
+        const wordsArray = Array.from(this.words);
+        
+        // For English, shuffle the words to get random results
+        if (isEnglish && !maxResults) {
+            // Fisher-Yates shuffle for truly random results
+            for (let i = wordsArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [wordsArray[i], wordsArray[j]] = [wordsArray[j], wordsArray[i]];
+            }
+        }
+
+        for (const candidateWord of wordsArray) {
+            if (limit && count >= limit) break;
+            
             const lastElement = this.getConnectingElement(candidateWord, true);
             if (lastElement === firstElement && candidateWord !== word.toLowerCase().trim()) {
                 previousWords.push(candidateWord);
+                count++;
             }
-        });
+        }
 
-        return previousWords.sort();
+        // Sort alphabetically (except for English random results)
+        if (!isEnglish || maxResults) {
+            return previousWords.sort();
+        }
+        
+        return previousWords;
+    }
+
+    /**
+     * Find next words with pagination support to avoid duplicates
+     * @param {string} word - The current word
+     * @param {number} maxResults - Maximum number of results to return
+     * @param {string[]} excludeWords - Words to exclude from results (already shown)
+     * @returns {Object} Object containing words array and hasMore boolean
+     */
+    findNextWordsPaginated(word, maxResults = 10, excludeWords = []) {
+        if (!word || typeof word !== 'string') {
+            return { words: [], hasMore: false };
+        }
+
+        const lastElement = this.getConnectingElement(word, true);
+        const nextWords = [];
+        const deadWords = [];
+        const excludeSet = new Set(excludeWords.map(w => w.toLowerCase()));
+        
+        // For English, always use random selection
+        const isEnglish = this.language === 'english';
+        let count = 0;
+        let totalAvailable = 0;
+
+        // Convert to array for better performance with large dictionaries
+        const wordsArray = Array.from(this.words);
+        
+        // For English, shuffle the words to get different random results each time
+        if (isEnglish) {
+            // Fisher-Yates shuffle for truly random results
+            for (let i = wordsArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [wordsArray[i], wordsArray[j]] = [wordsArray[j], wordsArray[i]];
+            }
+        }
+
+        for (const candidateWord of wordsArray) {
+            const firstElement = this.getConnectingElement(candidateWord, false);
+            if (firstElement === lastElement && candidateWord !== word.toLowerCase().trim()) {
+                totalAvailable++;
+                
+                // Skip if this word is in the exclude list
+                if (excludeSet.has(candidateWord.toLowerCase())) {
+                    continue;
+                }
+                
+                if (count >= maxResults) {
+                    // We found enough results, but there are more available
+                    break;
+                }
+                
+                // For English, skip dead word checking to improve performance
+                let hasNextWords = true;
+                let isDead = false;
+                
+                if (!isEnglish) {
+                    // Only check for dead words in Vietnamese (smaller dictionary)
+                    hasNextWords = this.hasNextWords(candidateWord);
+                    isDead = !hasNextWords;
+                }
+                
+                const wordInfo = {
+                    word: candidateWord,
+                    isDead: isDead
+                };
+                
+                if (isDead) {
+                    deadWords.push(wordInfo);
+                } else {
+                    nextWords.push(wordInfo);
+                }
+                
+                count++;
+            }
+        }
+
+        // Sort both arrays alphabetically (except for English random results)
+        if (!isEnglish) {
+            nextWords.sort((a, b) => a.word.localeCompare(b.word));
+            deadWords.sort((a, b) => a.word.localeCompare(b.word));
+        }
+
+        // Combine results
+        const result = [...deadWords, ...nextWords];
+        const hasMore = totalAvailable > (excludeWords.length + result.length);
+
+        return { words: result, hasMore };
+    }
+
+    /**
+     * Find previous words with pagination support to avoid duplicates
+     * @param {string} word - The current word
+     * @param {number} maxResults - Maximum number of results to return
+     * @param {string[]} excludeWords - Words to exclude from results (already shown)
+     * @returns {Object} Object containing words array and hasMore boolean
+     */
+    findPreviousWordsPaginated(word, maxResults = 10, excludeWords = []) {
+        if (!word || typeof word !== 'string') {
+            return { words: [], hasMore: false };
+        }
+
+        const firstElement = this.getConnectingElement(word, false);
+        const previousWords = [];
+        const excludeSet = new Set(excludeWords.map(w => w.toLowerCase()));
+        
+        // For English, always use random selection
+        const isEnglish = this.language === 'english';
+        let count = 0;
+        let totalAvailable = 0;
+
+        // Convert to array for better performance with large dictionaries
+        const wordsArray = Array.from(this.words);
+        
+        // For English, shuffle the words to get different random results each time
+        if (isEnglish) {
+            // Fisher-Yates shuffle for truly random results
+            for (let i = wordsArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [wordsArray[i], wordsArray[j]] = [wordsArray[j], wordsArray[i]];
+            }
+        }
+
+        for (const candidateWord of wordsArray) {
+            const lastElement = this.getConnectingElement(candidateWord, true);
+            if (lastElement === firstElement && candidateWord !== word.toLowerCase().trim()) {
+                totalAvailable++;
+                
+                // Skip if this word is in the exclude list
+                if (excludeSet.has(candidateWord.toLowerCase())) {
+                    continue;
+                }
+                
+                if (count >= maxResults) {
+                    // We found enough results, but there are more available
+                    break;
+                }
+                
+                previousWords.push(candidateWord);
+                count++;
+            }
+        }
+
+        // Sort alphabetically (except for English random results)
+        if (!isEnglish) {
+            previousWords.sort();
+        }
+        
+        const hasMore = totalAvailable > (excludeWords.length + previousWords.length);
+        
+        return { words: previousWords, hasMore };
     }
 
     /**
