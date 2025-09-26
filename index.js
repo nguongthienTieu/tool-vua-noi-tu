@@ -96,9 +96,43 @@ class WordChainHelper {
             return /^[a-zA-Z]+$/.test(cleanWord) && cleanWord.length > 1;
         }
         
-        // Vietnamese: Accept words with exactly 2 syllables
+        // Vietnamese: Accept words with exactly 2 syllables that are proper Vietnamese words
         const syllables = this.extractSyllables(word);
-        return syllables.length === 2 && syllables.every(syllable => syllable.length > 0);
+        if (syllables.length !== 2) return false;
+        
+        // Each syllable should be at least 2 characters and contain only Vietnamese characters (including a-z without diacritics)
+        const vietnameseRegex = /^[a-zàáảãạăắằẳẵặâấầẩẫậêếềểễệiíìỉĩịôốồổỗộơớờởỡợuúùủũụưứừửữựyýỳỷỹỵđ]{2,}$/;
+        if (!syllables.every(syllable => vietnameseRegex.test(syllable))) {
+            return false;
+        }
+        
+        // Reject obvious foreign words (containing combinations that don't appear in Vietnamese)
+        const word_lower = word.toLowerCase();
+        const foreignPatterns = [
+            /acid\s+/, /\s+acid/, // words containing "acid"
+            /^[bcdfghjklmnpqrstvwxyz]{3,}/, // consonant clusters not found in Vietnamese
+            /ph[^aeiouàáảãạăắằẳẵặâấầẩẫậêếềểễệiíìỉĩịôốồổỗộơớờởỡợuúùủũụưứừửữựyýỳỷỹỵđ]/, // ph not followed by vowel
+            /[wxz]/, // letters not commonly used in Vietnamese (removed q as qu- is common)
+        ];
+        
+        if (foreignPatterns.some(pattern => pattern.test(word_lower))) {
+            return false;
+        }
+        
+        // Vietnamese words should either contain Vietnamese diacritics, or be common Vietnamese syllables
+        const hasDiacritics = /[àáảãạăắằẳẵặâấầẩẫậêếềểễệiíìỉĩịôốồổỗộơớờởỡợuúùủũụưứừửữựyýỳỷỹỵđ]/;
+        const commonVietnameseSyllables = new Set([
+            'bánh', 'con', 'hoa', 'nước', 'mì', 'voi', 'đào', 'chó', 'mèo', 'gà', 'cá', 'bò', 
+            'lợn', 'cây', 'lá', 'quả', 'đất', 'trời', 'mây', 'gió', 'mưa', 'nắng', 'tối', 'sáng',
+            'ngày', 'đêm', 'nhà', 'của', 'người', 'tôi', 'em', 'anh', 'chị', 'bạn', 'mẹ', 'cha', 
+            'má', 'ba', 'ông', 'bà', 'cô', 'chú', 'dì', 'việc', 'làm', 'học', 'đi', 'về', 'đến', 
+            'từ', 'trong', 'ngoài', 'trên', 'dưới', 'cao', 'thấp', 'to', 'nhỏ', 'tốt', 'xấu',
+            'đẹp', 'xinh', 'giỏi', 'khéo', 'hay', 'dở', 'ai', 'gì', 'đâu', 'sao', 'bao', 'lúc',
+            'khi', 'theo', 'cùng', 'với', 'cho', 'về', 'ra', 'vào', 'lên', 'xuống', 'qua', 'sang'
+        ]);
+        
+        return hasDiacritics.test(word) || 
+               syllables.some(syllable => commonVietnameseSyllables.has(syllable));
     }
     
     /**
@@ -112,9 +146,7 @@ class WordChainHelper {
         }
         
         return wordList.filter(word => {
-            if (!word || typeof word !== 'string') return false;
-            const syllables = this.extractSyllables(word);
-            return syllables.length === 2 && syllables.every(syllable => syllable.length > 0);
+            return this.isValidCompoundWord(word);
         });
     }
     
