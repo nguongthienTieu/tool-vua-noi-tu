@@ -42,6 +42,7 @@
         <!-- Main functionality tabs -->
         <nav class="tab-nav">
             <button class="tab-btn active" data-tab="find">Tìm từ</button>
+            <button class="tab-btn" data-tab="validate">Kiểm tra từ</button>
             <button class="tab-btn" data-tab="manage">Quản lý từ</button>
         </nav>
 
@@ -63,6 +64,26 @@
                     <button id="loadMorePrevBtn" class="action-btn secondary">10 từ trước tiếp theo</button>
                 </div>
                 <div id="findResult" class="result-area"></div>
+            </div>
+
+            <!-- Word validation tab -->
+            <div id="validate-tab" class="tab-panel">
+                <div class="input-group">
+                    <label for="validateWord">Nhập từ cần kiểm tra:</label>
+                    <input type="text" id="validateWord" placeholder="con voi, bánh mì, apple, cat">
+                </div>
+                <div class="button-group">
+                    <button id="validateWordBtn" class="action-btn">Kiểm tra từ</button>
+                </div>
+                <div id="validateResult" class="result-area"></div>
+                
+                <div class="validation-info">
+                    <h4>Thông tin kiểm tra:</h4>
+                    <ul>
+                        <li><strong>Tiếng Việt:</strong> Kiểm tra từ ghép 2 âm tiết và có trong từ điển</li>
+                        <li><strong>English:</strong> Kiểm tra từ đơn chỉ chứa chữ cái và có trong từ điển</li>
+                    </ul>
+                </div>
             </div>
 
             <!-- Word management tab -->
