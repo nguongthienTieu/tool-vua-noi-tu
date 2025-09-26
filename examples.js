@@ -22,8 +22,8 @@ console.log('Có thể nối "con voi" với "voi biển" không?', helper.canCh
 console.log('Có thể nối "hoa đào" với "đào tạo" không?', helper.canChain('hoa đào', 'đào tạo'));
 
 console.log('\nTìm từ có thể theo sau:');
-console.log('Từ theo sau "bánh mì":', helper.findNextWords('bánh mì').slice(0, 5).join(', ') || 'Không có');
-console.log('Từ theo sau "con voi":', helper.findNextWords('con voi').slice(0, 5).join(', ') || 'Không có');
+console.log('Từ theo sau "bánh mì":', helper.findNextWords('bánh mì', true, true).slice(0, 5).join(', ') || 'Không có');
+console.log('Từ theo sau "con voi":', helper.findNextWords('con voi', true, true).slice(0, 5).join(', ') || 'Không có');
 
 console.log('\nTìm từ có thể đứng trước:');
 console.log('Từ trước "mì quảng":', helper.findPreviousWords('mì quảng').slice(0, 5).join(', ') || 'Không có');
