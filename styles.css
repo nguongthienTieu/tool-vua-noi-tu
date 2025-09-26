@@ -359,8 +359,33 @@ body {
     border-radius: 4px;
     font-size: 10px;
     line-height: 1.4;
-    max-height: 80px;
+    max-height: 120px;
     overflow-y: auto;
+}
+
+/* Separated examples styles */
+.separated-examples {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.language-examples-section {
+    background: #ffffff;
+    border: 1px solid #e0e6ed;
+    border-radius: 6px;
+    padding: 8px;
+}
+
+.language-examples-section h4 {
+    margin: 0 0 6px 0 !important;
+    font-size: 12px !important;
+    font-weight: 600;
+    color: #2c3e50 !important;
+}
+
+.language-examples-section .word-list {
+    margin: 4px 0 0 0;
 }
 
 /* Word list styles */

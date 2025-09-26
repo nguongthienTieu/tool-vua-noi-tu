@@ -124,9 +124,27 @@ class ElectronWordChainApp {
         });
 
         ipcMain.handle('get-random-words', async (event, count = 10) => {
-            const allWords = this.wordChainHelper.getAllWords();
-            const shuffled = allWords.sort(() => 0.5 - Math.random());
-            return shuffled.slice(0, count);
+            // Get examples for both languages
+            const currentLanguage = this.wordChainHelper.getLanguage();
+            
+            // Get Vietnamese examples
+            this.wordChainHelper.setLanguage('vietnamese');
+            const vietnameseWords = this.wordChainHelper.getAllWords();
+            const shuffledVietnamese = vietnameseWords.sort(() => 0.5 - Math.random()).slice(0, count);
+            
+            // Get English examples  
+            this.wordChainHelper.setLanguage('english');
+            const englishWords = this.wordChainHelper.getAllWords();
+            const shuffledEnglish = englishWords.sort(() => 0.5 - Math.random()).slice(0, count);
+            
+            // Restore original language
+            this.wordChainHelper.setLanguage(currentLanguage);
+            
+            return {
+                vietnamese: shuffledVietnamese,
+                english: shuffledEnglish,
+                currentLanguage: currentLanguage
+            };
         });
 
         // Handle language switching
