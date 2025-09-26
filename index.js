@@ -19,7 +19,11 @@ class WordChainHelper {
         this.language = language.toLowerCase(); // Support 'vietnamese' or 'english'
         this.deadWords = new Set(); // Từ "kết thúc" - không thể tiếp tục
         this.wordHistory = new Map(); // Theo dõi lịch sử sử dụng từ
-        this.userWords = new Set(); // Từ do người dùng thêm vào
+        // Separate user words by language
+        this.userWords = {
+            vietnamese: new Set(),
+            english: new Set()
+        };
         this.userWordsFile = path.join(__dirname, 'user-words.json');
         
         if (this.language === 'english') {
@@ -140,7 +144,8 @@ class WordChainHelper {
                     } else {
                         this.words.add(normalizedWord);
                         if (isUserAdded) {
-                            this.userWords.add(normalizedWord);
+                            // Add to current language's user words set
+                            this.userWords[this.language].add(normalizedWord);
                         }
                         results.added.push(normalizedWord);
                     }
@@ -180,8 +185,9 @@ class WordChainHelper {
                 
                 if (this.words.has(normalizedWord)) {
                     this.words.delete(normalizedWord);
-                    // Also remove from userWords if it was user-added
-                    this.userWords.delete(normalizedWord);
+                    // Also remove from userWords if it was user-added (check both languages)
+                    this.userWords.vietnamese.delete(normalizedWord);
+                    this.userWords.english.delete(normalizedWord);
                     this.deadWords.delete(normalizedWord);
                     results.removed.push(normalizedWord);
                 } else {
@@ -208,8 +214,11 @@ class WordChainHelper {
      */
     updateWord(oldWord, newWord) {
         if (this.words.has(oldWord.toLowerCase().trim())) {
+            const normalizedOldWord = oldWord.toLowerCase().trim();
+            // Check if the old word was user-added in current language
+            const wasUserAdded = this.userWords[this.language].has(normalizedOldWord);
             this.removeWords([oldWord]);
-            this.addWords([newWord], this.userWords.has(oldWord.toLowerCase().trim()));
+            this.addWords([newWord], wasUserAdded);
         }
     }
 
@@ -843,11 +852,11 @@ class WordChainHelper {
     }
 
     /**
-     * Get user-added words
-     * @returns {string[]} Array of user-added words
+     * Get user-added words for current language
+     * @returns {string[]} Array of user-added words for current language
      */
     getUserWords() {
-        return Array.from(this.userWords).sort();
+        return Array.from(this.userWords[this.language]).sort();
     }
     /**
      * Get statistics about the word database
@@ -857,7 +866,7 @@ class WordChainHelper {
         const elementStats = {}; // For letters (English) or syllables (Vietnamese)
         let totalWords = this.words.size;
         let compoundWords = 0;
-        let userAddedWords = this.userWords.size;
+        let userAddedWords = this.userWords[this.language].size;
         let deadWords = this.deadWords.size;
 
         this.words.forEach(word => {
@@ -908,7 +917,8 @@ class WordChainHelper {
         this.words.clear();
         this.deadWords.clear();
         this.wordHistory.clear();
-        this.userWords.clear();
+        this.userWords.vietnamese.clear();
+        this.userWords.english.clear();
     }
 
     /**
@@ -947,16 +957,17 @@ class WordChainHelper {
                 this.addWords(wiktionaryDict.getAllWords());
             }
             
-            // Re-add user words without language-specific validation
-            const userWordsArray = Array.from(this.userWords);
-            this.userWords.clear();
-            if (userWordsArray.length > 0) {
-                // Add user words directly without validation to preserve cross-language words
-                userWordsArray.forEach(word => {
-                    this.words.add(word);
-                    this.userWords.add(word);
-                });
-            }
+            // Re-add user words for all languages to preserve cross-language functionality
+            const vietnameseUserWords = Array.from(this.userWords.vietnamese);
+            const englishUserWords = Array.from(this.userWords.english);
+            
+            // Add all user words back to the main words set
+            vietnameseUserWords.forEach(word => {
+                this.words.add(word);
+            });
+            englishUserWords.forEach(word => {
+                this.words.add(word);
+            });
             
             console.log(`Language changed to ${this.language}`);
         }
@@ -977,14 +988,35 @@ class WordChainHelper {
         try {
             if (fs.existsSync(this.userWordsFile)) {
                 const data = fs.readFileSync(this.userWordsFile, 'utf8');
-                const userWordsArray = JSON.parse(data);
-                if (Array.isArray(userWordsArray)) {
-                    userWordsArray.forEach(word => {
+                const userData = JSON.parse(data);
+                
+                // Handle both old format (array) and new format (object with languages)
+                if (Array.isArray(userData)) {
+                    // Old format - migrate to new format by putting all words in Vietnamese
+                    userData.forEach(word => {
                         if (typeof word === 'string' && this.isValidCompoundWord(word)) {
                             this.words.add(word);
-                            this.userWords.add(word);
+                            this.userWords.vietnamese.add(word);
                         }
                     });
+                } else if (userData && typeof userData === 'object') {
+                    // New format - load words by language
+                    if (userData.vietnamese && Array.isArray(userData.vietnamese)) {
+                        userData.vietnamese.forEach(word => {
+                            if (typeof word === 'string' && this.isValidCompoundWord(word)) {
+                                this.words.add(word);
+                                this.userWords.vietnamese.add(word);
+                            }
+                        });
+                    }
+                    if (userData.english && Array.isArray(userData.english)) {
+                        userData.english.forEach(word => {
+                            if (typeof word === 'string') {
+                                this.words.add(word);
+                                this.userWords.english.add(word);
+                            }
+                        });
+                    }
                 }
             }
         } catch (error) {
@@ -997,8 +1029,11 @@ class WordChainHelper {
      */
     saveUserWords() {
         try {
-            const userWordsArray = Array.from(this.userWords);
-            fs.writeFileSync(this.userWordsFile, JSON.stringify(userWordsArray, null, 2), 'utf8');
+            const userWordsData = {
+                vietnamese: Array.from(this.userWords.vietnamese),
+                english: Array.from(this.userWords.english)
+            };
+            fs.writeFileSync(this.userWordsFile, JSON.stringify(userWordsData, null, 2), 'utf8');
         } catch (error) {
             console.error('Lỗi khi lưu từ người dùng:', error.message);
         }
