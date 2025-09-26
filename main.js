@@ -6,6 +6,15 @@ const WordChainHelper = require('./index.js');
 app.commandLine.appendSwitch('--no-sandbox');
 app.commandLine.appendSwitch('--disable-dev-shm-usage');
 app.commandLine.appendSwitch('--disable-gpu-sandbox');
+app.commandLine.appendSwitch('--disable-setuid-sandbox');
+app.commandLine.appendSwitch('--disable-seccomp-filter-sandbox');
+app.commandLine.appendSwitch('--disable-web-security');
+
+// Disable GPU for headless environments
+if (process.env.CI || process.env.HEADLESS) {
+    app.commandLine.appendSwitch('--disable-gpu');
+    app.commandLine.appendSwitch('--headless');
+}
 
 class ElectronWordChainApp {
     constructor() {
